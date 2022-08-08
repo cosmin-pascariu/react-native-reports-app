@@ -7,7 +7,6 @@ const CustomTextInput = props => {
     <TextInput
       {...props} // Inherit any props passed to it; e.g., multiline, numberOfLines below
       editable
-      maxLength={40}
     />
   );
 };
@@ -18,13 +17,11 @@ const Textarea = () => {
   return (
     <View>
       <CustomTextInput
-        multiline={true}
-        numberOfLines={8}
-        onChangeText={text => onChangeText(text)}
-        value={value}
         style={styles.textarea}
         placeholder="Write a short description of what happen..."
-        maxLength={500}
+        multiline={true}
+        numberOfLines={8}
+        maxLength={300}
         editable
       />
     </View>

@@ -15,14 +15,6 @@ export default function AddScreen() {
         <Text style={styles.label}>Title</Text>
         <TextInput style={styles.input} placeholder="Insert title" />
         <Text style={styles.label}>Description</Text>
-        {/* <TextInput
-          style={styles.textarea}
-          placeholder="Write a short description of what happen..."
-          multiline={true}
-          numberOfLines={8}
-          maxLength={500}
-          editable
-        /> */}
         <Textarea />
       </ScrollView>
     </SafeAreaView>

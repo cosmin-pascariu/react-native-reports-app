@@ -8,28 +8,107 @@
  */
 
 import * as React from 'react';
-import {useState} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import {Image, Text, View, StyleSheet} from 'react-native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {useState, useEffect} from 'react';
+
+import {Image, Text, View, StyleSheet, Button, TextInput} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import AddScreen from './screens/AddScreen';
+import FavouritesScreen from './screens/FavouritesScreen';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+
+import firestore from '@react-native-firebase/firestore';
 
 function HomeScreen({navigation}) {
+  const [users, setUsers] = useState([]);
+  const [userName, setUserName] = useState('');
+  const [deletedUser, setDeletedUser] = useState('');
+  const [deletedUserId, setDeletedUserId] = useState('');
+
+  useEffect(() => {
+    firestore()
+      .collection('users')
+      .onSnapshot(snapshot => {
+        let docs = [];
+        snapshot.forEach(doc => {
+          docs.push(doc.data());
+        });
+        console.log(docs);
+        setUsers(docs);
+      });
+  }, []);
+
+  const addNewUser = () => {
+    firestore()
+      .collection('users')
+      .add({
+        name: userName,
+      })
+      .then(() => {
+        console.log('Document successfully written!');
+      })
+      .catch(error => {
+        console.error('Error writing document: ', error);
+      });
+  };
+
+  const deleteUser = id => {
+    firestore()
+      .collection('users')
+      .doc(id)
+      .delete()
+      .then(() => {
+        console.log('Document successfully deleted!');
+      })
+      .catch(error => {
+        console.error('Error removing document: ', error);
+      });
+  };
+
+  const getUserId = firestore()
+    .collection('users')
+    .get()
+    .then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        doc.data().name === deletedUser ? setDeletedUserId(doc.id) : false;
+      });
+    });
+
   return (
     <SafeAreaView
       style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>Home Screen</Text>
+      {users.map(user => (
+        <Text key={user.id}>FullName: {user.name} </Text>
+      ))}
+      <Button
+        title="Show user data in console"
+        onPress={() => console.log(users)}
+      />
+      <TextInput
+        placeholder="Enter name"
+        value={userName}
+        onChangeText={text => setUserName(text)}
+      />
+      <Button
+        title="Add user"
+        onPress={userName !== '' ? () => addNewUser() : console.log('No name')}
+      />
+      <TextInput
+        placeholder="Enter name"
+        value={deletedUser}
+        onChangeText={text => setDeletedUser(text)}
+      />
+      <Button
+        title="Delete user"
+        onPress={
+          deletedUser !== ''
+            ? () => deleteUser(deletedUserId)
+            : console.log('No name')
+        }
+      />
     </SafeAreaView>
-  );
-}
-
-function FavouritesScreen({navigation}) {
-  return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>Favourites Screen</Text>
-    </View>
   );
 }
 
@@ -51,12 +130,16 @@ function App() {
               let iconName;
               if (route.name === 'Home') {
                 iconName = focused ? 'home' : 'home-outline';
+              } else if (route.name === 'Search') {
+                iconName = focused ? 'search' : 'search-outline';
               } else if (route.name === 'Favourites') {
                 iconName = focused ? 'heart' : 'heart-outline';
               } else if (route.name === 'Profile') {
                 iconName = focused ? 'person' : 'person-outline';
               } else if (route.name === 'Add') {
                 iconName = focused ? 'duplicate' : 'duplicate-outline';
+              } else if (route.name === 'MyPosts') {
+                iconName = focused ? 'newspaper' : 'newspaper-outline';
               }
               // You can return any component that you like here!
               return <Ionicons name={iconName} size={size} color={color} />;
@@ -75,6 +158,7 @@ function App() {
             tabBarBadgeStyle: {backgroundColor: 'red'},
           })}>
           <Tab.Screen name="Home" component={HomeScreen} />
+          <Tab.Screen name="Search" component={HomeScreen} />
           <Tab.Screen name="Add" component={AddScreen} />
           <Tab.Screen
             name="Favourites"
@@ -82,6 +166,7 @@ function App() {
             options={{tabBarBadge: numberOfFav}}
             onPress={() => handleNumberOfFav}
           />
+          <Tab.Screen name="MyPosts" component={HomeScreen} />
         </Tab.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
