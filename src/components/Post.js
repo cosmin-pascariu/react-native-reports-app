@@ -1,15 +1,22 @@
 import {StyleSheet, Text, View, Image, ScrollView} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function Post({
   userProfileImage,
   userProfileName,
+  postImage,
   title,
   location,
+  description,
 }) {
+  const [like, setLike] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [comment, setComment] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+
   return (
-    <ScrollView style={styles.postContainer}>
+    <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
         <Image source={userProfileImage} style={styles.profileImage} />
         <View>
@@ -18,29 +25,40 @@ export default function Post({
         </View>
       </View>
       <View style={styles.imageContainer}>
-        <Image
-          source={require('../assets/images.jpeg')}
-          style={styles.postImage}
-        />
-        {/* <Ionicons name="heart-circle-sharp" style={styles.heartIconFalse} />
-        <Ionicons name="heart-sharp" style={styles.heartIconTrue} /> */}
+        <Image source={postImage} style={styles.postImage} />
       </View>
-      <Text style={styles.postTitle}>{title}</Text>
+      <View style={styles.titleContent}>
+        <Text style={styles.postTitle}>{title}</Text>
+        <Ionicons
+          name={like ? 'heart' : 'heart-outline'}
+          style={{color: like ? 'red' : 'black', fontSize: 20}}
+          onPress={() => setLike(!like)}
+        />
+      </View>
       <View
         style={{
           borderBottomColor: 'black',
           borderBottomWidth: StyleSheet.hairlineWidth,
         }}
       />
-      <Text>Description</Text>
-    </ScrollView>
+      <Text style={styles.postDescription}>{description}</Text>
+      <View
+        style={{
+          borderBottomColor: 'black',
+          borderBottomWidth: StyleSheet.hairlineWidth,
+        }}
+      />
+      <View>
+        <Text style={styles.postComment}>Add a comment...</Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   postContainer: {
     borderWidth: 1,
-    borderColor: '#000',
+    borderColor: '#ddd',
     width: '100%',
     marginTop: 10,
     borderLeftWidth: 0,
@@ -59,21 +77,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#000',
     alignItems: 'center',
-  },
-  heartIconFalse: {
-    color: 'gray',
-    fontSize: 40,
-    marginTop: 10,
-    position: 'absolute',
-    right: 10,
-  },
-  heartIconTrue: {
-    color: 'red',
-    fontSize: 25,
-    marginTop: 10,
-    position: 'absolute',
-    right: 18,
-    top: 10,
   },
   postImage: {
     objectFit: 'cover',
@@ -105,8 +108,33 @@ const styles = StyleSheet.create({
   },
   postLocation: {
     fontSize: 10,
-    color: '#899999',
+    color: '#aaa',
     textDecoration: 'none',
     fontWeight: 'bold',
+  },
+  postDescription: {
+    fontSize: 14,
+    color: '#303030',
+    textDecoration: 'none',
+    marginTop: 3,
+    marginBottom: 3,
+    marginLeft: 10,
+    marginRight: 10,
+    maxHeight: 72,
+    textOverflow: 'ellipsis',
+    textAlign: 'justify',
+  },
+  postComment: {
+    fontSize: 14,
+    marginTop: 3,
+    marginBottom: 3,
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  titleContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginRight: 5,
   },
 });
