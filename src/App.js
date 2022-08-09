@@ -15,17 +15,21 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import AddScreen from './screens/AddScreen';
 import FavouritesScreen from './screens/FavouritesScreen';
+import MyPostsScreen from './screens/MyPostsScreen';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 import firestore from '@react-native-firebase/firestore';
 
+//To do: replace deleted user with selectedUser
+
 function HomeScreen({navigation}) {
   const [users, setUsers] = useState([]);
   const [userName, setUserName] = useState('');
   const [deletedUser, setDeletedUser] = useState('');
   const [deletedUserId, setDeletedUserId] = useState('');
+  const [updatedUser, setUpdatedUser] = useState('');
 
   useEffect(() => {
     firestore()
@@ -76,6 +80,19 @@ function HomeScreen({navigation}) {
       });
     });
 
+  const updateUser = id => {
+    firesotre()
+      .collection('users')
+      .doc(id)
+      .update({name: updatedUser})
+      .then(() => {
+        console.log('Document successfully updated!');
+      })
+      .catch(error => {
+        console.error('Error updateing document: ', error);
+      });
+  };
+
   return (
     <SafeAreaView
       style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
@@ -108,6 +125,25 @@ function HomeScreen({navigation}) {
             : console.log('No name')
         }
       />
+      {/* update user */}
+      {/* <TextInput
+        placeholder="Edit name"
+        value={deletedUser}
+        onChangeText={text => setDeletedUser(text)}
+      />
+      <TextInput
+        placeholder="New name"
+        value={updatedUser}
+        onChangeText={text => setDeletedUser(text)}
+      />
+      <Button
+        title="Update user"
+        onPress={
+          updatedUser !== ''
+            ? () => updateUser(deletedUserId)
+            : console.log('No name')
+        }
+      /> */}
     </SafeAreaView>
   );
 }
@@ -166,7 +202,7 @@ function App() {
             options={{tabBarBadge: numberOfFav}}
             onPress={() => handleNumberOfFav}
           />
-          <Tab.Screen name="MyPosts" component={HomeScreen} />
+          <Tab.Screen name="MyPosts" component={MyPostsScreen} />
         </Tab.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
