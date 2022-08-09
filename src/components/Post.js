@@ -24,7 +24,7 @@ const HEIGHT = Dimensions.get('window').height;
 export default function Post({
   userProfileImage,
   userProfileName,
-  postImage,
+  // postImage,
   title,
   location,
   description,
@@ -67,22 +67,32 @@ export default function Post({
         horizontal
         style={styles.imageContainer}>
         {/* <Image source={postImage} style={styles.postImage} /> */}
-        {images.map((image, index) => (
-          <Image
-            key={index}
-            source={{uri: image}}
-            style={[styles.postImage, {width: WIDTH}]}
-          />
-        ))}
+        {images.map(
+          (
+            image,
+            index, //postImages
+          ) => (
+            <Image
+              key={index}
+              source={{uri: image}}
+              style={[styles.postImage, {width: WIDTH}]}
+            />
+          ),
+        )}
       </ScrollView>
       <View style={styles.imageDot}>
-        {images.map((e, index) => (
-          <Text
-            key={e}
-            style={imgActive == index ? styles.dotActive : styles.dot}>
-            &#9679;
-          </Text>
-        ))}
+        {images.map(
+          (
+            e,
+            index, //postImages
+          ) => (
+            <Text
+              key={e}
+              style={imgActive == index ? styles.dotActive : styles.dot}>
+              &#9679;
+            </Text>
+          ),
+        )}
       </View>
       {/* </View> */}
       <View style={styles.upvotedContent}>
@@ -140,6 +150,7 @@ export default function Post({
       <Text style={styles.seeMore} onPress={() => setSeemore(!seeMore)}>
         {seeMore ? 'see less' : 'see more'}
       </Text>
+      <Text style={styles.seePostTime}>2 hours ago</Text>
       <View
         style={{
           borderBottomColor: '#999',
@@ -265,7 +276,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#aaa',
     marginLeft: 10,
-    marginBottom: 3,
+  },
+  seePostTime: {
+    fontSize: 12,
+    color: '#aaa',
+    marginLeft: 10,
   },
   upvotedButtons: {
     flexDirection: 'row',

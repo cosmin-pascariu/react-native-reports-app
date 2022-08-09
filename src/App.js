@@ -16,6 +16,7 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import AddScreen from './screens/AddScreen';
 import FavouritesScreen from './screens/FavouritesScreen';
 import MyPostsScreen from './screens/MyPostsScreen';
+import SplashScreen from './screens/SplashScreen';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -125,25 +126,6 @@ function HomeScreen({navigation}) {
             : console.log('No name')
         }
       />
-      {/* update user */}
-      {/* <TextInput
-        placeholder="Edit name"
-        value={deletedUser}
-        onChangeText={text => setDeletedUser(text)}
-      />
-      <TextInput
-        placeholder="New name"
-        value={updatedUser}
-        onChangeText={text => setDeletedUser(text)}
-      />
-      <Button
-        title="Update user"
-        onPress={
-          updatedUser !== ''
-            ? () => updateUser(deletedUserId)
-            : console.log('No name')
-        }
-      /> */}
     </SafeAreaView>
   );
 }
@@ -151,60 +133,60 @@ function HomeScreen({navigation}) {
 const Tab = createBottomTabNavigator();
 
 function App() {
-  const [numberOfFav, setNumberOfFav] = useState(2);
-
-  const handleNumberOfFav = () => {
-    setNumberOfFav(numberOfFav + 1);
-  };
+  const [numberOfFav, setNumberOfFav] = useState(null);
+  const [userAuth, setUserAuth] = useState(false);
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({route}) => ({
-            tabBarIcon: ({focused, color, size}) => {
-              let iconName;
-              if (route.name === 'Home') {
-                iconName = focused ? 'home' : 'home-outline';
-              } else if (route.name === 'Search') {
-                iconName = focused ? 'search' : 'search-outline';
-              } else if (route.name === 'Favourites') {
-                iconName = focused ? 'heart' : 'heart-outline';
-              } else if (route.name === 'Profile') {
-                iconName = focused ? 'person' : 'person-outline';
-              } else if (route.name === 'Add') {
-                iconName = focused ? 'duplicate' : 'duplicate-outline';
-              } else if (route.name === 'MyPosts') {
-                iconName = focused ? 'newspaper' : 'newspaper-outline';
-              }
-              // You can return any component that you like here!
-              return <Ionicons name={iconName} size={size} color={color} />;
-            },
-            headerTitle: props => (
-              <View style={styles.headerRow}>
-                <Text style={styles.headerTitle}>{route.name}</Text>
-                <Image
-                  source={require('./assets/images.jpeg')}
-                  style={styles.headerProfile}
-                />
-              </View>
-            ),
-            tabBarActiveTintColor: 'blue',
-            tabBarInactiveTintColor: 'gray',
-            tabBarBadgeStyle: {backgroundColor: 'red'},
-          })}>
-          <Tab.Screen name="Home" component={HomeScreen} />
-          <Tab.Screen name="Search" component={HomeScreen} />
-          <Tab.Screen name="Add" component={AddScreen} />
-          <Tab.Screen
-            name="Favourites"
-            component={FavouritesScreen}
-            options={{tabBarBadge: numberOfFav}}
-            onPress={() => handleNumberOfFav}
-          />
-          <Tab.Screen name="MyPosts" component={MyPostsScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
+      {userAuth === false ? (
+        <SplashScreen />
+      ) : (
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={({route}) => ({
+              tabBarIcon: ({focused, color, size}) => {
+                let iconName;
+                if (route.name === 'Home') {
+                  iconName = focused ? 'home' : 'home-outline';
+                } else if (route.name === 'Search') {
+                  iconName = focused ? 'search' : 'search-outline';
+                } else if (route.name === 'Favourites') {
+                  iconName = focused ? 'heart' : 'heart-outline';
+                } else if (route.name === 'Profile') {
+                  iconName = focused ? 'person' : 'person-outline';
+                } else if (route.name === 'Add') {
+                  iconName = focused ? 'duplicate' : 'duplicate-outline';
+                } else if (route.name === 'MyPosts') {
+                  iconName = focused ? 'newspaper' : 'newspaper-outline';
+                }
+                // You can return any component that you like here!
+                return <Ionicons name={iconName} size={size} color={color} />;
+              },
+              headerTitle: props => (
+                <View style={styles.headerRow}>
+                  <Text style={styles.headerTitle}>{route.name}</Text>
+                  <Image
+                    source={require('./assets/images.jpeg')}
+                    style={styles.headerProfile}
+                  />
+                </View>
+              ),
+              tabBarActiveTintColor: 'blue',
+              tabBarInactiveTintColor: 'gray',
+              tabBarBadgeStyle: {backgroundColor: 'red'},
+            })}>
+            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Search" component={HomeScreen} />
+            <Tab.Screen name="Add" component={AddScreen} />
+            <Tab.Screen
+              name="Favourites"
+              component={FavouritesScreen}
+              options={{tabBarBadge: numberOfFav}}
+            />
+            <Tab.Screen name="MyPosts" component={MyPostsScreen} />
+          </Tab.Navigator>
+        </NavigationContainer>
+      )}
     </SafeAreaProvider>
   );
 }
