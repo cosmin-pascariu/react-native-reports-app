@@ -134,7 +134,7 @@ const Tab = createBottomTabNavigator();
 
 function App() {
   const [numberOfFav, setNumberOfFav] = useState(null);
-  const [userAuth, setUserAuth] = useState(false);
+  const [userAuth, setUserAuth] = useState(true);
 
   return (
     <SafeAreaProvider>
