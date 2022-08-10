@@ -8,19 +8,22 @@ import {
   Image,
   View,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
 import Textarea from '../components/Textarea';
 import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 
 export default function AddScreen() {
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [transferred, setTransferred] = useState(0);
 
   const takePhoteFromCamera = () => {
     ImagePicker.openCamera({
@@ -31,7 +34,7 @@ export default function AddScreen() {
       .then(image => {
         console.log(image);
         const imageUri = Platform.OS === 'android' ? image.path : image.uri;
-        setImage(imageUri);
+        setImages(...images, imageUri);
       })
       .catch(err => {
         console.log(err);
@@ -62,21 +65,43 @@ export default function AddScreen() {
       });
   };
 
-  const submitPost = async () => {
-    const uploadUri = image;
-    let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
-
+  const submitImages = async () => {
+    const promises = images.map(async image => {
+      const uploadUri = image.path;
+      let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+      const extention = filename.split('.').pop();
+      const name = filename.split('.').slice(0, -1).join('.');
+      filename = name + Date.now() + '.' + extention;
+      const uploadTask = storage().ref(filename).putFile(uploadUri);
+      uploadTask.on(
+        'state_changed',
+        snapshot => {},
+        error => {
+          console.log(error);
+        },
+        async () => {
+          const url = await uploadTask.snapshot.ref.getDownloadURL();
+          setImages(...images, url);
+        },
+      );
+    });
+    await Promise.all(promises);
     const post = {
-      images: images.length > 1 ? images : image,
+      images: images,
       title: title,
       location: 'Suceava, Romania',
       description: description,
     };
     await firestore().collection('posts').add(post);
-    setImage(null);
     setImages([]);
-
     Alert.alert('Success', 'Post added successfully');
+  };
+
+  const getImagesFromStorage = async () => {
+    // const images = await storage()
+    //   .ref('b6ae607d-cc17-4ec4-82f7-e86a3e7542081660125496517.jpg')
+    //   .getDownloadURL();
+    // setImage(image);
   };
 
   return (
@@ -121,15 +146,7 @@ export default function AddScreen() {
             ))}
           </View>
         )}
-        {image && (
-          <Image
-            source={{uri: image}}
-            style={styles.loadedImage}
-            resizeMode="contain"
-          />
-        )}
-
-        <Button title="Submit" onPress={submitPost} />
+        <Button title="Submit" onPress={submitImages} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -173,4 +190,72 @@ const styles = StyleSheet.create({
     marginRight: 10,
     objectFit: 'cover',
   },
+  progress: {
+    flexDirection: 'row',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#303030',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+  },
 });
+
+// const submitPost = async () => {
+//   const uploadUri = image;
+//   let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+
+//   const post = {
+//     images: images.length > 1 ? images : image,
+//     title: title,
+//     location: 'Suceava, Romania',
+//     description: description,
+//   };
+//   await firestore().collection('posts').add(post);
+//   setImage(null);
+//   setImages([]);
+
+//   Alert.alert('Success', 'Post added successfully');
+// };
+
+// const submitImage = async () => {
+//   const uploadUri = image;
+//   let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+
+//   // Add timestamp to filename
+//   const extention = filename.split('.').pop();
+//   const name = filename.split('.').slice(0, -1).join('.');
+//   filename = name + Date.now() + '.' + extention;
+
+//   setUploading(true);
+//   setTransferred(0);
+
+//   const task = storage().ref(filename).putFile(uploadUri);
+
+//   try {
+//     await task;
+
+//     // Set transferred state
+//     task.on('state_changed', taskSnapshot => {
+//       console.log(
+//         `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
+//       );
+//       setTransferred(
+//         Math.round(taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) *
+//           100,
+//       );
+//     });
+
+//     setUploading(false);
+//     Alert.alert(
+//       'Image uploaded!',
+//       'Your image has been uploaded successfully to the storage',
+//     );
+//   } catch (e) {
+//     Alert.alert(e.message);
+//   }
+
+//   setImage(null);
+// };

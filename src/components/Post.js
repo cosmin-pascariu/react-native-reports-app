@@ -9,8 +9,9 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import storage from '@react-native-firebase/storage';
 
 const images = [
   'https://images.freeimages.com/images/previews/e04/yellow-frontal-with-ivy-1228121.jpg',
@@ -38,6 +39,7 @@ export default function Post({
   const [seeMore, setSeemore] = useState(false);
 
   const [imgActive, setImgActive] = useState(0);
+  const [image, setImage] = useState();
 
   const onchange = nativeEvent => {
     if (nativeEvent) {
@@ -50,6 +52,15 @@ export default function Post({
     }
   };
 
+  // useEffect(() => {
+  //   const getImageFromStorage = async () => {
+  //     const image = await storage().ref('IMG1.jpeg').getDownloadURL();
+  //     setImage(image);
+  //     console.log('Loaded image: ', image);
+  //   };
+  //   getImageFromStorage();
+  // }, []);
+
   return (
     <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
@@ -59,14 +70,12 @@ export default function Post({
           <Text style={styles.postLocation}>{location}</Text>
         </View>
       </View>
-      {/* <View style={styles.imageContainer}> */}
       <ScrollView
         onScroll={({nativeEvent}) => onchange(nativeEvent)}
         showHorizontalScrollIndicator={false}
         pagingEnabled
         horizontal
         style={styles.imageContainer}>
-        {/* <Image source={postImage} style={styles.postImage} /> */}
         {images.map(
           (
             image,
@@ -94,7 +103,6 @@ export default function Post({
           ),
         )}
       </View>
-      {/* </View> */}
       <View style={styles.upvotedContent}>
         <View style={styles.upvotedButtons}>
           <Ionicons
