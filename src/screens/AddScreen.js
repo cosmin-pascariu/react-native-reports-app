@@ -9,6 +9,7 @@ import {
   View,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import React, {useState} from 'react';
 import Textarea from '../components/Textarea';
@@ -16,6 +17,9 @@ import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
+
+const WIDTH = Dimensions.get('window').width;
+const HEIGHT = Dimensions.get('window').height;
 
 export default function AddScreen() {
   const [images, setImages] = useState([]);
@@ -27,14 +31,15 @@ export default function AddScreen() {
 
   const takePhoteFromCamera = () => {
     ImagePicker.openCamera({
-      width: 400,
-      height: 400,
+      width: WIDTH,
+      height: HEIGHT / 2 - 20,
       cropping: true,
     })
       .then(image => {
-        console.log(image);
-        const imageUri = Platform.OS === 'android' ? image.path : image.uri;
-        setImages(...images, imageUri);
+        // console.log(image);
+        // const imageUri = Platform.OS === 'android' ? image.path : image.uri;
+        setImages(...images, image);
+        // console.log(images);
       })
       .catch(err => {
         console.log(err);
@@ -44,17 +49,6 @@ export default function AddScreen() {
   const takeMultiplePhotos = () => {
     ImagePicker.openPicker({
       multiple: true,
-      waitAnimationEnd: false,
-      includeExif: true,
-      forceJpg: true,
-      mediaType: 'photo',
-      compressImageMaxWidth: 640,
-      compressImageMaxHeight: 480,
-      compressImageQuality: 0.5,
-      compressVideoPreset: 'MediumQuality',
-      cropping: true,
-      cropperChooseText: 'Choose',
-      cropperCancelText: 'Cancel',
     })
       .then(images => {
         console.log(images);
@@ -68,11 +62,7 @@ export default function AddScreen() {
   const submitImages = async () => {
     const promises = images.map(async image => {
       const uploadUri = image.path;
-      let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
-      const extention = filename.split('.').pop();
-      const name = filename.split('.').slice(0, -1).join('.');
-      filename = name + Date.now() + '.' + extention;
-      const uploadTask = storage().ref(filename).putFile(uploadUri);
+      const uploadTask = storage().ref(uploadUri).putFile(uploadUri);
       uploadTask.on(
         'state_changed',
         snapshot => {},
@@ -81,7 +71,6 @@ export default function AddScreen() {
         },
         async () => {
           const url = await uploadTask.snapshot.ref.getDownloadURL();
-          setImages(...images, url);
         },
       );
     });
@@ -91,6 +80,7 @@ export default function AddScreen() {
       title: title,
       location: 'Suceava, Romania',
       description: description,
+      bookmark: false,
     };
     await firestore().collection('posts').add(post);
     setImages([]);
@@ -134,7 +124,7 @@ export default function AddScreen() {
             onPress={takeMultiplePhotos}
           />
         </View>
-        {images.length > 1 && (
+        {images.length > 0 && (
           <View style={styles.loadedImages}>
             {images.map(image => (
               <Image
@@ -202,60 +192,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-// const submitPost = async () => {
-//   const uploadUri = image;
-//   let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
-
-//   const post = {
-//     images: images.length > 1 ? images : image,
-//     title: title,
-//     location: 'Suceava, Romania',
-//     description: description,
-//   };
-//   await firestore().collection('posts').add(post);
-//   setImage(null);
-//   setImages([]);
-
-//   Alert.alert('Success', 'Post added successfully');
-// };
-
-// const submitImage = async () => {
-//   const uploadUri = image;
-//   let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
-
-//   // Add timestamp to filename
-//   const extention = filename.split('.').pop();
-//   const name = filename.split('.').slice(0, -1).join('.');
-//   filename = name + Date.now() + '.' + extention;
-
-//   setUploading(true);
-//   setTransferred(0);
-
-//   const task = storage().ref(filename).putFile(uploadUri);
-
-//   try {
-//     await task;
-
-//     // Set transferred state
-//     task.on('state_changed', taskSnapshot => {
-//       console.log(
-//         `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`,
-//       );
-//       setTransferred(
-//         Math.round(taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) *
-//           100,
-//       );
-//     });
-
-//     setUploading(false);
-//     Alert.alert(
-//       'Image uploaded!',
-//       'Your image has been uploaded successfully to the storage',
-//     );
-//   } catch (e) {
-//     Alert.alert(e.message);
-//   }
-
-//   setImage(null);
-// };

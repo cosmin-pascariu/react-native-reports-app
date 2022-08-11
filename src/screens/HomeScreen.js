@@ -14,7 +14,6 @@ export default function HomeScreen() {
         snapshot.forEach(doc => {
           docs.push(doc.data());
         });
-        console.log(docs);
         setPosts(docs);
       });
   }, []);
@@ -22,40 +21,16 @@ export default function HomeScreen() {
   return (
     <ScrollView>
       <View style={styles.container}>
-        {/* <Post
-          userProfileImage={require('../assets/images.jpeg')}
-          userProfileName="Costel Anton"
-          location="Bucharest, Romania"
-          postImage={require('../assets/treePost.jpeg')}
-          title="Post Title"
-          description="Lorem ipsum dolor sit amet, fhsajhdfg jhgsjhga jhgfjkgsjg afgskjgakjhg kjh shdfa kjsdjfkahls kkjfsha lkjconsectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-        />
-        <Post
-          userProfileImage={require('../assets/images.jpeg')}
-          userProfileName="Costel Anton"
-          location="Bucharest, Romania"
-          postImage={require('../assets/treePost.jpeg')}
-          title="Post Title"
-          description="Lorem ipsum dolor sit amet, fhsajhdfg jhgsjhga jhgfjkgsjg afgskjgakjhg kjh shdfa kjsdjfkahls kkjfsha lkjconsectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-        />
-        <Post
-          userProfileImage={require('../assets/images.jpeg')}
-          userProfileName="Costel Anton"
-          location="Bucharest, Romania"
-          postImage={require('../assets/treePost.jpeg')}
-          title="Post Title"
-          description="Lorem ipsum dolor sit amet, fhsajhdfg jhgsjhga jhgfjkgsjg afgskjgakjhg kjh shdfa kjsdjfkahls kkjfsha lkjconsectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-        /> */}
         {posts.map(post => (
           <Post
             key={post.id}
             userProfileImage={require('../assets/images.jpeg')}
             userProfileName="Costel Anton"
             location="Bucharest, Romania"
-            // postImage={require('../assets/treePost.jpeg')}/
             postImages={post.images}
             title={post.title}
             description={post.description}
+            bookmarkStatus={post.bookmark}
           />
         ))}
       </View>

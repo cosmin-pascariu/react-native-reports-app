@@ -26,13 +26,6 @@ export default function SignInScreen() {
 
   const {signIn} = React.useContext(AuthContext);
 
-  const handleSignIn = () => {
-    if (data.email === '' || data.password === '') {
-      Alert.alert('Error', 'Please fill all fields');
-    }
-    signIn(data.email, data.password);
-  };
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -69,30 +62,14 @@ export default function SignInScreen() {
           </View>
           <Text style={styles.forgotPass}>Forgot password?</Text>
 
-          <Pressable
-            style={styles.signInButton}
-            onPress={() => navigation.navigate('AppNavigatorScreen')}>
+          <Pressable style={styles.signInButton} onPress={() => signIn()}>
             <Text style={styles.buttonText}>Sign In</Text>
           </Pressable>
           <Pressable
             style={styles.signUpButton}
-            onPress={() => {
-              signIn();
-            }}>
+            onPress={() => navigation.navigate('SignUpScreen')}>
             <Text style={styles.buttonTextBlue}>Sign Up</Text>
           </Pressable>
-          {/* Sign in with Google */}
-          {/* <Pressable
-            style={styles.googleButton}
-            onPress={() => console.log('Sign in with Google!')}>
-            <Ionicons
-              name="logo-google"
-              size={24}
-              color="#fff"
-              style={styles.googleLogo}
-            />
-            <Text style={styles.buttonText}>Sign In with Google</Text>
-          </Pressable> */}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>

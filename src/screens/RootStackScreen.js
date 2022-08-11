@@ -14,10 +14,6 @@ const RootStackScreen = () => (
     initialRouteName="SplashScreen"
     screenOptions={{headerShown: false}}>
     <RootStack.Screen name="SplashScreen" component={SplashScreen} />
-    <RootStack.Screen
-      name="AppNavigatorScreen"
-      component={AppNavigatorScreen}
-    />
     <RootStack.Screen name="SignInScreen" component={SignInScreen} />
     <RootStack.Screen name="SignUpScreen" component={SignUpScreen} />
   </RootStack.Navigator>

@@ -25,10 +25,11 @@ const HEIGHT = Dimensions.get('window').height;
 export default function Post({
   userProfileImage,
   userProfileName,
-  // postImage,
+  postImages,
   title,
   location,
   description,
+  bookmarkStatus,
 }) {
   const [savedPost, setSavedPost] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
@@ -52,14 +53,14 @@ export default function Post({
     }
   };
 
-  // useEffect(() => {
-  //   const getImageFromStorage = async () => {
-  //     const image = await storage().ref('IMG1.jpeg').getDownloadURL();
-  //     setImage(image);
-  //     console.log('Loaded image: ', image);
-  //   };
-  //   getImageFromStorage();
-  // }, []);
+  useEffect(() => {
+    const getImageFromStorage = async () => {
+      const image = await storage().ref(postImages[0].path).getDownloadURL();
+      setImage(image);
+      console.log('Loaded image: ', image);
+    };
+    getImageFromStorage();
+  }, []);
 
   return (
     <View style={styles.postContainer}>
@@ -76,38 +77,28 @@ export default function Post({
         pagingEnabled
         horizontal
         style={styles.imageContainer}>
-        {images.map(
-          (
-            image,
-            index, //postImages
-          ) => (
-            <Image
-              key={index}
-              source={{uri: image}}
-              style={[styles.postImage, {width: WIDTH}]}
-            />
-          ),
-        )}
+        {postImages.map((image, index) => (
+          <Image
+            key={index}
+            source={{uri: image.path}}
+            style={[styles.postImage, {width: WIDTH}]}
+          />
+        ))}
       </ScrollView>
       <View style={styles.imageDot}>
-        {images.map(
-          (
-            e,
-            index, //postImages
-          ) => (
-            <Text
-              key={e}
-              style={imgActive == index ? styles.dotActive : styles.dot}>
-              &#9679;
-            </Text>
-          ),
-        )}
+        {postImages.map((e, index) => (
+          <Text
+            key={e}
+            style={imgActive == index ? styles.dotActive : styles.dot}>
+            &#9679;
+          </Text>
+        ))}
       </View>
       <View style={styles.upvotedContent}>
         <View style={styles.upvotedButtons}>
           <Ionicons
             name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
-            style={{color: isImportant ? 'orange' : '#323232', fontSize: 25}}
+            style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
             onPress={() => {
               setIsImportant(!isImportant);
               if (isImportant === false) {
@@ -118,7 +109,7 @@ export default function Post({
           />
           <Ionicons
             name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
-            style={{color: isGood ? 'green' : '#323232', fontSize: 25}}
+            style={{color: isGood ? 'green' : '#888', fontSize: 25}}
             onPress={() => {
               setIsGood(!isGood);
               if (isGood === false) {
@@ -129,7 +120,7 @@ export default function Post({
           />
           <Ionicons
             name={isNotGood ? 'close-circle' : 'close-circle-outline'}
-            style={{color: isNotGood ? 'red' : '#323232', fontSize: 25}}
+            style={{color: isNotGood ? 'red' : '#888', fontSize: 25}}
             onPress={() => {
               setIsNotGood(!isNotGood);
               if (isNotGood === false) {
@@ -141,8 +132,11 @@ export default function Post({
         </View>
         <Ionicons
           name={savedPost ? 'bookmark' : 'bookmark-outline'}
-          style={{color: 'black', fontSize: 25}}
-          onPress={() => setSavedPost(!savedPost)}
+          style={{color: savedPost ? 'black' : '#888', fontSize: 25}}
+          onPress={() => {
+            setSavedPost(!savedPost);
+            bookmarkStatus = savedPost;
+          }}
         />
       </View>
       <View
@@ -213,9 +207,10 @@ const styles = StyleSheet.create({
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 5,
-    marginLeft: 5,
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 5,
+    backgroundColor: '#fff',
   },
   profileImage: {
     width: 30,
