@@ -10,7 +10,9 @@ import AppNavigatorScreen from './AppNavigatorScreen';
 const RootStack = createStackNavigator();
 
 const RootStackScreen = () => (
-  <RootStack.Navigator headerMode="none" initialRouteName="SplashScreen">
+  <RootStack.Navigator
+    initialRouteName="SplashScreen"
+    screenOptions={{headerShown: false}}>
     <RootStack.Screen name="SplashScreen" component={SplashScreen} />
     <RootStack.Screen
       name="AppNavigatorScreen"

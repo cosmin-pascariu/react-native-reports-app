@@ -13,12 +13,25 @@ import SignUpScreen from './SignUpScreen';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import {AuthContext} from '../components/context';
+
 export default function SignInScreen() {
   const navigation = useNavigation();
   const [passwordVisibility, setPasswordVisibility] = useState(false);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [data, setData] = useState({
+    email: '',
+    password: '',
+  });
+
+  const {signIn} = React.useContext(AuthContext);
+
+  const handleSignIn = () => {
+    if (data.email === '' || data.password === '') {
+      Alert.alert('Error', 'Please fill all fields');
+    }
+    signIn(data.email, data.password);
+  };
 
   return (
     <SafeAreaProvider>
@@ -33,8 +46,8 @@ export default function SignInScreen() {
             <TextInput
               style={styles.emailInput}
               placeholder="Your E-mail"
-              value={email}
-              onChangeText={text => setEmail(text)}
+              value={data.email}
+              onChangeText={text => setData({...data, email: text})}
             />
           </View>
           <Text style={styles.label}>Password</Text>
@@ -44,8 +57,8 @@ export default function SignInScreen() {
               style={styles.emailInput}
               placeholder="Your Password"
               secureTextEntry={!passwordVisibility}
-              value={password}
-              onChangeText={text => setPassword(text)}
+              value={data.password}
+              onChangeText={text => setData({...data, password: text})}
             />
             <Ionicons
               name={passwordVisibility ? 'eye' : 'eye-off'}
@@ -63,7 +76,9 @@ export default function SignInScreen() {
           </Pressable>
           <Pressable
             style={styles.signUpButton}
-            onPress={() => navigation.navigate('SignUpScreen')}>
+            onPress={() => {
+              signIn();
+            }}>
             <Text style={styles.buttonTextBlue}>Sign Up</Text>
           </Pressable>
           {/* Sign in with Google */}

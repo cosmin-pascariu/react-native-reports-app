@@ -9,6 +9,7 @@ import FavouritesScreen from './FavouritesScreen';
 import MyPostsScreen from './MyPostsScreen';
 import SplashScreen from './SplashScreen';
 import HomeScreen from './HomeScreen';
+import SearchScreen from './SearchScreen';
 import firestore from '@react-native-firebase/firestore';
 
 const Tab = createBottomTabNavigator();
@@ -63,7 +64,7 @@ export default function AppNavigatorScreen() {
         tabBarBadgeStyle: {backgroundColor: 'red'},
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Search" component={HomeScreen} />
+      <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Add" component={AddScreen} />
       <Tab.Screen
         name="Favourites"
