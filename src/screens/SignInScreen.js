@@ -1,14 +1,24 @@
-import {StyleSheet, Text, View, Pressable, TextInput} from 'react-native';
 import React, {useState} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  TextInput,
+  Alert,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import AppNavigatorScreen from './AppNavigatorScreen';
-import SplashScreen from './SplashScreen';
+import SignUpScreen from './SignUpScreen';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function SignInScreen() {
   const navigation = useNavigation();
   const [passwordVisibility, setPasswordVisibility] = useState(false);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
     <SafeAreaProvider>
@@ -20,7 +30,12 @@ export default function SignInScreen() {
           <Text style={styles.label}>E-mail</Text>
           <View style={styles.row}>
             <Ionicons name="mail" size={24} color="#323232" />
-            <TextInput style={styles.emailInput} placeholder="Your E-mail" />
+            <TextInput
+              style={styles.emailInput}
+              placeholder="Your E-mail"
+              value={email}
+              onChangeText={text => setEmail(text)}
+            />
           </View>
           <Text style={styles.label}>Password</Text>
           <View style={styles.row}>
@@ -29,6 +44,8 @@ export default function SignInScreen() {
               style={styles.emailInput}
               placeholder="Your Password"
               secureTextEntry={!passwordVisibility}
+              value={password}
+              onChangeText={text => setPassword(text)}
             />
             <Ionicons
               name={passwordVisibility ? 'eye' : 'eye-off'}
@@ -46,9 +63,21 @@ export default function SignInScreen() {
           </Pressable>
           <Pressable
             style={styles.signUpButton}
-            onPress={() => navigation.navigate('SplashScreen')}>
+            onPress={() => navigation.navigate('SignUpScreen')}>
             <Text style={styles.buttonTextBlue}>Sign Up</Text>
           </Pressable>
+          {/* Sign in with Google */}
+          {/* <Pressable
+            style={styles.googleButton}
+            onPress={() => console.log('Sign in with Google!')}>
+            <Ionicons
+              name="logo-google"
+              size={24}
+              color="#fff"
+              style={styles.googleLogo}
+            />
+            <Text style={styles.buttonText}>Sign In with Google</Text>
+          </Pressable> */}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -113,18 +142,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     width: '100%',
     height: 50,
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',
   },
   buttonTextBlue: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#0356e8',
     textDecoration: 'none',
     fontWeight: 'bold',
@@ -134,11 +163,25 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 5,
     marginBottom: 5,
     borderColor: '#0356e8',
     borderWidth: 2,
     width: '100%',
     height: 50,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    backgroundColor: '#0356e8',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5,
+    marginBottom: 5,
+    width: '100%',
+    height: 50,
+  },
+  googleLogo: {
+    position: 'absolute',
+    left: 20,
   },
 });
