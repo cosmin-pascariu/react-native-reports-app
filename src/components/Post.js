@@ -12,6 +12,7 @@ import {
 import React, {useState, useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import storage from '@react-native-firebase/storage';
+import uuid from 'react-native-uuid';
 
 const images = [
   'https://images.freeimages.com/images/previews/e04/yellow-frontal-with-ivy-1228121.jpg',
@@ -41,6 +42,7 @@ export default function Post({
 
   const [imgActive, setImgActive] = useState(0);
   const [image, setImage] = useState();
+  const [images, setImages] = useState(postImages);
 
   const onchange = nativeEvent => {
     if (nativeEvent) {
@@ -55,9 +57,9 @@ export default function Post({
 
   useEffect(() => {
     const getImageFromStorage = async () => {
-      const image = await storage().ref(postImages[0].path).getDownloadURL();
+      const image = await storage().ref(postImages[0]).getDownloadURL();
+      console.log('IMAGE:', image);
       setImage(image);
-      console.log('Loaded image: ', image);
     };
     getImageFromStorage();
   }, []);
@@ -77,13 +79,19 @@ export default function Post({
         pagingEnabled
         horizontal
         style={styles.imageContainer}>
-        {postImages.map((image, index) => (
+        {images.map(img => (
           <Image
-            key={index}
-            source={{uri: image.path}}
+            key={uuid.v4()}
+            source={{uri: image}}
             style={[styles.postImage, {width: WIDTH}]}
           />
         ))}
+        {/* <Image
+          source={{
+            uri: postImages[1],
+          }}
+          style={[styles.postImage, {width: WIDTH}]}
+        /> */}
       </ScrollView>
       <View style={styles.imageDot}>
         {postImages.map((e, index) => (
@@ -198,7 +206,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    backgroundColor: '#000',
+    // backgroundColor: '#000',
   },
   postImage: {
     objectFit: 'cover',

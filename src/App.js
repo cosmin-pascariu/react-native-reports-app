@@ -50,7 +50,39 @@ function CustomDrawerContent(props) {
     <View style={styles.customContainer}>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
-        <Text>Sign out</Text>
+        <Text>MyProfile</Text>
+        <Drawer.Section style={styles.drawerSection}>
+          <DrawerItem
+            label="My profile"
+            icon={({color, size}) => (
+              <Ionicons name="exit" color={color} size={size} />
+            )}
+          />
+        </Drawer.Section>
+        <Drawer.Section style={styles.drawerSection}>
+          <DrawerItem
+            label="Another action"
+            icon={({color, size}) => (
+              <Ionicons name="exit" color={color} size={size} />
+            )}
+          />
+        </Drawer.Section>
+        <Drawer.Section style={styles.drawerSection}>
+          <DrawerItem
+            label="Another action"
+            icon={({color, size}) => (
+              <Ionicons name="exit" color={color} size={size} />
+            )}
+          />
+        </Drawer.Section>
+        <Drawer.Section style={styles.drawerSection}>
+          <DrawerItem
+            label="Another action"
+            icon={({color, size}) => (
+              <Ionicons name="exit" color={color} size={size} />
+            )}
+          />
+        </Drawer.Section>
         <Drawer.Section style={styles.drawerSection}>
           <DrawerItem
             label="Sign out"

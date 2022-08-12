@@ -17,6 +17,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
+import uuid from 'react-native-uuid';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -29,17 +30,18 @@ export default function AddScreen() {
   const [uploading, setUploading] = useState(false);
   const [transferred, setTransferred] = useState(0);
 
-  const takePhoteFromCamera = () => {
+  const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
       width: WIDTH,
       height: HEIGHT / 2 - 20,
       cropping: true,
     })
       .then(image => {
-        // console.log(image);
-        // const imageUri = Platform.OS === 'android' ? image.path : image.uri;
-        setImages(...images, image);
-        // console.log(images);
+        console.log(image);
+        const imageUri = Platform.OS === 'android' ? image.path : image.uri;
+        setImages([...images, image]);
+        console.log('From Camera:', image);
+        console.log('Images', images);
       })
       .catch(err => {
         console.log(err);
@@ -51,8 +53,9 @@ export default function AddScreen() {
       multiple: true,
     })
       .then(images => {
-        console.log(images);
-        setImages(images);
+        images.map(image => {
+          setImages(images);
+        });
       })
       .catch(err => {
         console.log(err);
@@ -60,38 +63,43 @@ export default function AddScreen() {
   };
 
   const submitImages = async () => {
+    let imagesPath = [];
     const promises = images.map(async image => {
-      const uploadUri = image.path;
-      const uploadTask = storage().ref(uploadUri).putFile(uploadUri);
-      uploadTask.on(
-        'state_changed',
-        snapshot => {},
-        error => {
-          console.log(error);
-        },
-        async () => {
-          const url = await uploadTask.snapshot.ref.getDownloadURL();
-        },
-      );
+      const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
+      let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+
+      // Add timestamp to filename to avoid name collisions
+      const extension = filename.split('.').pop();
+      const name = filename.split('.').slice(0, -1).join('.');
+      filename = name + Date.now() + '.' + extension;
+
+      try {
+        await storage().ref(filename).putFile(uploadUri);
+        imagesPath.push(filename);
+        console.log('Uploaded image: ', imagesPath);
+      } catch (error) {
+        console.log(error);
+      }
     });
     await Promise.all(promises);
     const post = {
-      images: images,
+      images: imagesPath,
       title: title,
       location: 'Suceava, Romania',
       description: description,
       bookmark: false,
     };
     await firestore().collection('posts').add(post);
-    setImages([]);
     Alert.alert('Success', 'Post added successfully');
+    setImages([]);
+    setTitle('');
+    setLocation('');
+    setDescription('');
   };
 
-  const getImagesFromStorage = async () => {
-    // const images = await storage()
-    //   .ref('b6ae607d-cc17-4ec4-82f7-e86a3e7542081660125496517.jpg')
-    //   .getDownloadURL();
-    // setImage(image);
+  const showConsole = () => {
+    console.log('Images', images);
+    setImages([]);
   };
 
   return (
@@ -115,7 +123,7 @@ export default function AddScreen() {
             name="ios-camera"
             size={30}
             color="black"
-            onPress={takePhoteFromCamera}
+            onPress={takePhotoFromCamera}
           />
           <Ionicons
             name="ios-images"
@@ -126,9 +134,9 @@ export default function AddScreen() {
         </View>
         {images.length > 0 && (
           <View style={styles.loadedImages}>
-            {images.map(image => (
+            {images.map((image, index) => (
               <Image
-                key={image.path}
+                key={index}
                 source={{uri: image.path}}
                 style={styles.loadedImage}
                 resizeMode="contain"
@@ -137,6 +145,7 @@ export default function AddScreen() {
           </View>
         )}
         <Button title="Submit" onPress={submitImages} />
+        <Button title="Console" onPress={() => showConsole()} />
       </ScrollView>
     </SafeAreaView>
   );

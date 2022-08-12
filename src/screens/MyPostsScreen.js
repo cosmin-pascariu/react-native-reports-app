@@ -2,6 +2,7 @@ import {StyleSheet, Text, View, ScrollView} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Post from '../components/Post';
 import firestore from '@react-native-firebase/firestore';
+import uuid from 'react-native-uuid';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
@@ -23,7 +24,7 @@ export default function MyPostsScreen() {
       <View style={styles.container}>
         {posts.map(post => (
           <Post
-            key={post.id}
+            key={uuid.v4()}
             userProfileImage={require('../assets/images.jpeg')}
             userProfileName="Costel Anton"
             location="Bucharest, Romania"
