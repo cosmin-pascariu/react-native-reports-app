@@ -44,7 +44,7 @@ const RootDrawer = createDrawerNavigator();
 function CustomDrawerContent(props) {
   const {signOut} = React.useContext(AuthContext);
 
-  const signOutUser = () => {
+  const userSignOut = () => {
     auth()
       .signOut()
       .then(() => console.log('User signed out!'));
@@ -90,7 +90,7 @@ function CustomDrawerContent(props) {
         <Drawer.Section style={styles.drawerSection}>
           <DrawerItem
             label="Sign out"
-            onPress={() => signOutUser()}
+            onPress={() => userSignOut()}
             icon={({color, size}) => (
               <Ionicons name="exit" color={color} size={size} />
             )}

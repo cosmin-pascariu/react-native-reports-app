@@ -13,6 +13,7 @@ import SignUpScreen from './SignUpScreen';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 // import {AuthContext} from '../components/context';
 
@@ -23,6 +24,8 @@ export default function SignInScreen() {
   const [data, setData] = useState({
     email: '',
     password: '',
+    profileImage: '',
+    fullName: 'anonim',
   });
 
   // const {signIn} = React.useContext(AuthContext);
@@ -39,7 +42,6 @@ export default function SignInScreen() {
         .signInWithEmailAndPassword(email, password)
         .then(() => {
           console.log('User account created & signed in!');
-          console.log(auth.currentUser.email);
         })
         .catch(error => {
           if (error.code === 'auth/wrong-password') {

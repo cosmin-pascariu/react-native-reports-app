@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, Pressable, TextInput} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  TextInput,
+  Alert,
+} from 'react-native';
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import SignInScreen from './SignInScreen';
@@ -6,6 +13,7 @@ import SplashScreen from './SplashScreen';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function SignUpScreen() {
   const navigation = useNavigation();
@@ -13,34 +21,62 @@ export default function SignUpScreen() {
   const [confirmPasswordVisibility, setConfirmPasswordVisibility] =
     useState(false);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [userData, setUserData] = useState({
+    email: '',
+    password: '',
+    profileImage: '',
+    fullName: 'anonim',
+  });
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const passwordValidation = () => {
-    if (password !== confirmPassword) {
+    if (userData.password !== confirmPassword) {
       return false;
     }
     return true;
   };
 
-  const createUser = (email, password) => {
-    auth()
-      .createUserWithEmailAndPassword(email, password)
+  const addNewUser = () => {
+    firestore()
+      .collection('users')
+      .add({
+        name: userData.fullName,
+        email: userData.email,
+        password: userData.password,
+        profileImage: userData.profileImage,
+      })
       .then(() => {
-        console.log('User account created & signed in!');
+        console.log('Document successfully written!');
       })
       .catch(error => {
-        if (error.code === 'auth/email-already-in-use') {
-          console.log('That email address is already in use!');
-        }
-
-        if (error.code === 'auth/invalid-email') {
-          console.log('That email address is invalid!');
-        }
-
-        console.error(error);
+        console.error('Error writing document: ', error);
       });
+  };
+
+  const createUser = (email, password) => {
+    if (email === '' || password === '' || confirmPassword === '') {
+      Alert.alert('Please fill all the fields');
+    } else if (passwordValidation()) {
+      auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then(() => {
+          console.log('User account created & signed in!');
+          addNewUser();
+        })
+        .catch(error => {
+          if (error.code === 'auth/email-already-in-use') {
+            console.log('That email address is already in use!');
+          }
+
+          if (error.code === 'auth/invalid-email') {
+            console.log('That email address is invalid!');
+          }
+
+          console.error(error);
+        });
+    } else {
+      Alert.alert('Passwords do not match');
+    }
   };
 
   return (
@@ -56,8 +92,8 @@ export default function SignUpScreen() {
             <TextInput
               style={styles.emailInput}
               placeholder="Your E-mail"
-              value={email}
-              onChangeText={text => setEmail(text)}
+              value={userData.email}
+              onChangeText={text => setUserData({...userData, email: text})}
             />
           </View>
           <Text style={styles.label}>Password</Text>
@@ -67,8 +103,8 @@ export default function SignUpScreen() {
               style={styles.emailInput}
               placeholder="Your Password"
               secureTextEntry={!passwordVisibility}
-              value={password}
-              onChangeText={text => setPassword(text)}
+              value={userData.password}
+              onChangeText={text => setUserData({...userData, password: text})}
             />
             <Ionicons
               name={passwordVisibility ? 'eye' : 'eye-off'}
@@ -104,7 +140,7 @@ export default function SignUpScreen() {
 
           <Pressable
             style={styles.signInButton}
-            onPress={() => createUser(email, password)}>
+            onPress={() => createUser(userData.email, userData.password)}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </Pressable>
           <Pressable
