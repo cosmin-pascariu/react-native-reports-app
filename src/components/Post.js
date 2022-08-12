@@ -14,12 +14,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
 
-const images = [
-  'https://images.freeimages.com/images/previews/e04/yellow-frontal-with-ivy-1228121.jpg',
-  'https://images.freeimages.com/images/previews/5e0/daisys-1392171.jpg',
-  'https://images.freeimages.com/variants/iaDKoTTnJNGeJe44QrjwQ9Mi/f4a36f6589a0e50e702740b15352bc00e4bfaf6f58bd4db850e167794d05993d',
-];
-
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
 
@@ -41,8 +35,7 @@ export default function Post({
   const [seeMore, setSeemore] = useState(false);
 
   const [imgActive, setImgActive] = useState(0);
-  const [image, setImage] = useState();
-  const [images, setImages] = useState(postImages);
+  const [images, setImages] = useState([]);
 
   const onchange = nativeEvent => {
     if (nativeEvent) {
@@ -57,9 +50,12 @@ export default function Post({
 
   useEffect(() => {
     const getImageFromStorage = async () => {
-      const image = await storage().ref(postImages[0]).getDownloadURL();
-      console.log('IMAGE:', image);
-      setImage(image);
+      const imagesFromStorage = [];
+      for (let i = 0; i < postImages.length; i++) {
+        const image = await storage().ref(postImages[i]).getDownloadURL();
+        imagesFromStorage.push(image);
+      }
+      setImages(imagesFromStorage);
     };
     getImageFromStorage();
   }, []);
@@ -79,19 +75,13 @@ export default function Post({
         pagingEnabled
         horizontal
         style={styles.imageContainer}>
-        {images.map(img => (
+        {images.map(image => (
           <Image
             key={uuid.v4()}
             source={{uri: image}}
             style={[styles.postImage, {width: WIDTH}]}
           />
         ))}
-        {/* <Image
-          source={{
-            uri: postImages[1],
-          }}
-          style={[styles.postImage, {width: WIDTH}]}
-        /> */}
       </ScrollView>
       <View style={styles.imageDot}>
         {postImages.map((e, index) => (
@@ -206,7 +196,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    // backgroundColor: '#000',
+    backgroundColor: '#353535',
   },
   postImage: {
     objectFit: 'cover',

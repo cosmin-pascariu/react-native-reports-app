@@ -14,7 +14,7 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 
-import {AuthContext} from '../components/context';
+// import {AuthContext} from '../components/context';
 
 export default function SignInScreen() {
   const navigation = useNavigation();
@@ -25,26 +25,34 @@ export default function SignInScreen() {
     password: '',
   });
 
-  const {signIn} = React.useContext(AuthContext);
+  // const {signIn} = React.useContext(AuthContext);
 
-  const loginHandle = (email, password) => {
-    signIn(email, password);
-  };
+  // const loginHandle = (email, password) => {
+  //   signIn(email, password);
+  // };
 
   const userSignIn = (email, password) => {
-    auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(() => {
-        console.log('User account created & signed in!');
-      })
-      .catch(error => {
-        if (error.code === 'auth/wrong-password') {
-          console.log('Wrong password.');
-        }
-        if (error.code === 'auth/user-not-found') {
-          console.log('User not found.');
-        }
-      });
+    if (email === '' || password === '') {
+      Alert.alert('Please fill all the fields');
+    } else {
+      auth()
+        .signInWithEmailAndPassword(email, password)
+        .then(() => {
+          console.log('User account created & signed in!');
+          console.log(auth.currentUser.email);
+        })
+        .catch(error => {
+          if (error.code === 'auth/wrong-password') {
+            Alert.alert('Wrong password.');
+          }
+          if (error.code === 'auth/user-not-found') {
+            Alert.alert('User not found.');
+          }
+          if (error.code === 'auth/invalid-email') {
+            Alert.alert('That email address is invalid!');
+          }
+        });
+    }
   };
 
   return (

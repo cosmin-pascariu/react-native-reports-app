@@ -2,6 +2,7 @@ import {StyleSheet, Text, View, Button, TextInput} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import firestore from '@react-native-firebase/firestore';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import auth from '@react-native-firebase/auth';
 
 export default function SearchScreen({navigation}) {
   const [users, setUsers] = useState([]);
@@ -24,6 +25,7 @@ export default function SearchScreen({navigation}) {
   }, []);
 
   const addNewUser = () => {
+    console.log('Email', auth.currentUser);
     firestore()
       .collection('users')
       .add({
