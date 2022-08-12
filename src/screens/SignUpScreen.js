@@ -5,6 +5,7 @@ import SignInScreen from './SignInScreen';
 import SplashScreen from './SplashScreen';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import auth from '@react-native-firebase/auth';
 
 export default function SignUpScreen() {
   const navigation = useNavigation();
@@ -21,6 +22,25 @@ export default function SignUpScreen() {
       return false;
     }
     return true;
+  };
+
+  const createUser = (email, password) => {
+    auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        console.log('User account created & signed in!');
+      })
+      .catch(error => {
+        if (error.code === 'auth/email-already-in-use') {
+          console.log('That email address is already in use!');
+        }
+
+        if (error.code === 'auth/invalid-email') {
+          console.log('That email address is invalid!');
+        }
+
+        console.error(error);
+      });
   };
 
   return (
@@ -84,12 +104,12 @@ export default function SignUpScreen() {
 
           <Pressable
             style={styles.signInButton}
-            onPress={() => navigation.navigate('SplashScreen')}>
+            onPress={() => createUser(email, password)}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </Pressable>
           <Pressable
             style={styles.signUpButton}
-            onPress={() => console.log('SignIn')}>
+            onPress={() => navigation.navigate('SignInScreen')}>
             <Text style={styles.buttonTextBlue}>Sign In</Text>
           </Pressable>
         </View>

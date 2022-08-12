@@ -18,9 +18,6 @@ import {
 } from 'react-native-safe-area-context';
 import AppNavigatorScreen from './screens/AppNavigatorScreen';
 import RootStackScreen from './screens/RootStackScreen';
-import HomeScreen from './screens/HomeScreen';
-import SearchScreen from './screens/SearchScreen';
-import DrawerContent from './screens/DrawerContent';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -40,11 +37,18 @@ import {
 import {authContext} from './components/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import auth from '@react-native-firebase/auth';
 
 const RootDrawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
   const {signOut} = React.useContext(AuthContext);
+
+  const signOutUser = () => {
+    auth()
+      .signOut()
+      .then(() => console.log('User signed out!'));
+  };
 
   return (
     <View style={styles.customContainer}>
@@ -86,7 +90,7 @@ function CustomDrawerContent(props) {
         <Drawer.Section style={styles.drawerSection}>
           <DrawerItem
             label="Sign out"
-            onPress={() => signOut()}
+            onPress={() => signOutUser()}
             icon={({color, size}) => (
               <Ionicons name="exit" color={color} size={size} />
             )}
@@ -98,6 +102,20 @@ function CustomDrawerContent(props) {
 }
 
 function App() {
+  const [initialising, setInitialising] = useState(true);
+  const [user, setUser] = useState();
+
+  // Handle user state changes
+  function onAuthStateChanged(user) {
+    setUser(user);
+    if (initialising) setInitialising(false);
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
   const initialLoginState = {
     isLoading: true,
     userEmail: null,
@@ -192,11 +210,12 @@ function App() {
       </View>
     );
   }
+
   return (
     <AuthContext.Provider value={authContext}>
       <SafeAreaProvider>
         <NavigationContainer>
-          {loginState.userToken !== null ? (
+          {user ? (
             <RootDrawer.Navigator
               useLegacyImplementation={false}
               screenOptions={{

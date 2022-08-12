@@ -29,6 +29,7 @@ export default function AddScreen() {
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
   const [transferred, setTransferred] = useState(0);
+  const [image, setImage] = useState(null);
 
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
@@ -37,11 +38,15 @@ export default function AddScreen() {
       cropping: true,
     })
       .then(image => {
-        console.log(image);
-        const imageUri = Platform.OS === 'android' ? image.path : image.uri;
-        setImages([...images, image]);
-        console.log('From Camera:', image);
-        console.log('Images', images);
+        // console.log(image);
+        // const imageUri = Platform.OS === 'ios' ? image.uri : image.path;
+        // let filename = imageUri.substring(imageUri.lastIndexOf('/') + 1);
+        // const extension = filename.split('.').pop();
+        // const name = filename.split('.').slice(0, -1).join('.');
+        // filename = name + Date.now() + '.' + extension;
+
+        // setImage(filename);
+        setImages([image]);
       })
       .catch(err => {
         console.log(err);
@@ -76,7 +81,6 @@ export default function AddScreen() {
       try {
         await storage().ref(filename).putFile(uploadUri);
         imagesPath.push(filename);
-        console.log('Uploaded image: ', imagesPath);
       } catch (error) {
         console.log(error);
       }
@@ -98,8 +102,7 @@ export default function AddScreen() {
   };
 
   const showConsole = () => {
-    console.log('Images', images);
-    setImages([]);
+    console.log('Images::', images);
   };
 
   return (
