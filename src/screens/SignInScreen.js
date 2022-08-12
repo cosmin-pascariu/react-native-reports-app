@@ -26,6 +26,10 @@ export default function SignInScreen() {
 
   const {signIn} = React.useContext(AuthContext);
 
+  const loginHandle = (email, password) => {
+    signIn(email, password);
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -62,7 +66,9 @@ export default function SignInScreen() {
           </View>
           <Text style={styles.forgotPass}>Forgot password?</Text>
 
-          <Pressable style={styles.signInButton} onPress={() => signIn()}>
+          <Pressable
+            style={styles.signInButton}
+            onPress={() => loginHandle(data.email, data.password)}>
             <Text style={styles.buttonText}>Sign In</Text>
           </Pressable>
           <Pressable

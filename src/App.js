@@ -5,14 +5,18 @@ import {NavigationContainer} from '@react-navigation/native';
 import {AuthContext} from './components/context';
 import {
   Image,
-  Text,
+  // Text,
   View,
   StyleSheet,
   Button,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  Pressable,
+} from 'react-native-safe-area-context';
 import AppNavigatorScreen from './screens/AppNavigatorScreen';
 import RootStackScreen from './screens/RootStackScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -24,55 +28,127 @@ import {
   DrawerItemList,
   DrawerItem,
 } from '@react-navigation/drawer';
+import {
+  Avatar,
+  Title,
+  Caption,
+  Paragraph,
+  Drawer,
+  Text,
+  TouchableRipple,
+  Switch,
+} from 'react-native-paper';
+import {authContext} from './components/context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Drawer = createDrawerNavigator();
+const RootDrawer = createDrawerNavigator();
 
 function Feed({navigation}) {
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Text>Feed Screen</Text>
       <Button title="Open drawer" onPress={() => navigation.openDrawer()} />
-      <Button title="Toggle drawer" onPress={() => navigation.toggleDrawer()} />
     </View>
   );
 }
 
 function CustomDrawerContent(props) {
+  const {signOut} = React.useContext(AuthContext);
+
   return (
-    <DrawerContentScrollView {...props}>
-      <DrawerItemList {...props} activeTintColor="#2196f3" />
-    </DrawerContentScrollView>
+    <View style={styles.customContainer}>
+      <DrawerContentScrollView {...props}>
+        <DrawerItemList {...props} />
+        <Text>Sign out</Text>
+        <Drawer.Section style={styles.drawerSection}>
+          <DrawerItem
+            label="Sign out"
+            onPress={() => signOut()}
+            icon={({color, size}) => (
+              <Ionicons name="exit" color={color} size={size} />
+            )}
+          />
+        </Drawer.Section>
+      </DrawerContentScrollView>
+    </View>
   );
 }
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userToken, setUserToken] = useState(null);
-  const [con, setCon] = useState(true);
+  const initialLoginState = {
+    isLoading: true,
+    userName: null,
+    userToken: null,
+  };
 
-  const authContext = useMemo(() => ({
-    signIn: () => {
-      setUserToken('userToken');
-      setIsLoading(false);
-      setCon(false);
-    },
-    signOut: () => {
-      setUserToken(null);
-      setIsLoading(false);
-    },
-    signUp: () => {
-      setUserToken('userToken');
-      setIsLoading(false);
-    },
-  }));
+  const loginReducer = (prevState, action) => {
+    switch (action.type) {
+      case 'RETRIEVE_TOKEN':
+        return {
+          ...prevState,
+          isLoading: false,
+          userToken: action.token,
+        };
+      case 'LOGIN':
+        return {
+          ...prevState,
+          isLoading: false,
+          userName: action.id,
+          userToken: action.token,
+        };
+      case 'LOGOUT':
+        return {
+          ...prevState,
+          isLoading: false,
+          userName: null,
+          userToken: null,
+        };
+      case 'REGISTER':
+        return {
+          ...prevState,
+          isLoading: false,
+          userName: action.id,
+          userToken: action.token,
+        };
+    }
+  };
+
+  const [loginState, dispatch] = React.useReducer(
+    loginReducer,
+    initialLoginState,
+  );
+
+  const authContext = useMemo(
+    () => ({
+      signIn: (userName, password) => {
+        let userToken;
+        userToken = null;
+        if (userName == 'user' && password == 'password') {
+          userToken = 'abc123';
+        }
+        dispatch({type: 'LOGIN', id: userName, token: userToken});
+      },
+      signOut: () => {
+        dispatch({type: 'LOGOUT'});
+      },
+      signUp: () => {
+        // setUserToken('userToken');
+        // setIsLoading(false);
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+      let userToken;
+      userToken = 'fgg';
+
+      dispatch({type: 'RETRIEVE_TOKEN', token: userToken});
+    }, 1000);
   }, []);
 
-  if (isLoading) {
+  if (loginState.isLoading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" />
@@ -83,19 +159,21 @@ function App() {
     <AuthContext.Provider value={authContext}>
       <SafeAreaProvider>
         <NavigationContainer>
-          {!con ? (
-            <Drawer.Navigator
-              useLegacyImplementation
+          {loginState.userToken !== null ? (
+            <RootDrawer.Navigator
+              useLegacyImplementation={false}
               screenOptions={{
                 headerShown: false,
               }}
               drawerContent={props => <CustomDrawerContent {...props} />}>
-              <Drawer.Screen
+              <RootDrawer.Screen
                 name="AppNavigatorScreen"
                 component={AppNavigatorScreen}
+                options={{
+                  drawerItemStyle: {height: 0},
+                }}
               />
-              <Drawer.Screen name="Feed" component={Feed} />
-            </Drawer.Navigator>
+            </RootDrawer.Navigator>
           ) : (
             <RootStackScreen />
           )}
@@ -111,5 +189,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  customContainer: {
+    flex: 2,
+    paddingTop: 20,
+    backgroundColor: '#fff',
   },
 });

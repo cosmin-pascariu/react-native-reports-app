@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-
 import {Image, Text, View, StyleSheet, Button, TextInput} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
@@ -12,10 +11,14 @@ import HomeScreen from './HomeScreen';
 import SearchScreen from './SearchScreen';
 import firestore from '@react-native-firebase/firestore';
 
+import {AuthContext} from '../components/context';
+
 const Tab = createBottomTabNavigator();
 
-export default function AppNavigatorScreen() {
+export default function AppNavigatorScreen({navigation}) {
   const [numberOfFav, setNumberOfFav] = useState(null);
+
+  const {signOut} = React.useContext(AuthContext);
 
   useEffect(() => {
     firestore()
@@ -56,6 +59,7 @@ export default function AppNavigatorScreen() {
             <Image
               source={require('../assets/images.jpeg')}
               style={styles.headerProfile}
+              onPress={() => navigation.openDrawer()}
             />
           </View>
         ),
