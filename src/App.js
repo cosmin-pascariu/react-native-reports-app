@@ -5,7 +5,6 @@ import {NavigationContainer} from '@react-navigation/native';
 import {AuthContext} from './components/context';
 import {
   Image,
-  // Text,
   View,
   StyleSheet,
   Button,
@@ -39,18 +38,10 @@ import {
   Switch,
 } from 'react-native-paper';
 import {authContext} from './components/context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const RootDrawer = createDrawerNavigator();
-
-function Feed({navigation}) {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Feed Screen</Text>
-      <Button title="Open drawer" onPress={() => navigation.openDrawer()} />
-    </View>
-  );
-}
 
 function CustomDrawerContent(props) {
   const {signOut} = React.useContext(AuthContext);
@@ -77,7 +68,7 @@ function CustomDrawerContent(props) {
 function App() {
   const initialLoginState = {
     isLoading: true,
-    userName: null,
+    userEmail: null,
     userToken: null,
   };
 
@@ -93,21 +84,21 @@ function App() {
         return {
           ...prevState,
           isLoading: false,
-          userName: action.id,
+          userEmail: action.id,
           userToken: action.token,
         };
       case 'LOGOUT':
         return {
           ...prevState,
           isLoading: false,
-          userName: null,
+          userEmail: null,
           userToken: null,
         };
       case 'REGISTER':
         return {
           ...prevState,
           isLoading: false,
-          userName: action.id,
+          userEmail: action.id,
           userToken: action.token,
         };
     }
@@ -120,15 +111,25 @@ function App() {
 
   const authContext = useMemo(
     () => ({
-      signIn: (userName, password) => {
+      signIn: async (email, password) => {
         let userToken;
         userToken = null;
-        if (userName == 'user' && password == 'password') {
-          userToken = 'abc123';
+        if (email == 'email' && password == 'password') {
+          try {
+            userToken = 'abc123';
+            await AsyncStorage.setItem('userToken', userToken);
+          } catch (error) {
+            console.log(error);
+          }
         }
-        dispatch({type: 'LOGIN', id: userName, token: userToken});
+        dispatch({type: 'LOGIN', id: email, token: userToken});
       },
-      signOut: () => {
+      signOut: async () => {
+        try {
+          await AsyncStorage.removeItem('userToken');
+        } catch (error) {
+          console.log(error);
+        }
         dispatch({type: 'LOGOUT'});
       },
       signUp: () => {
@@ -140,10 +141,14 @@ function App() {
   );
 
   useEffect(() => {
-    setTimeout(() => {
+    setTimeout(async () => {
       let userToken;
-      userToken = 'fgg';
-
+      userToken = null;
+      try {
+        userToken = await AsyncStorage.getItem('userToken');
+      } catch (error) {
+        console.log(error);
+      }
       dispatch({type: 'RETRIEVE_TOKEN', token: userToken});
     }, 1000);
   }, []);
