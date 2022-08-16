@@ -31,6 +31,8 @@ export default function MyPostsScreen() {
             postImages={post.images}
             title={post.title}
             description={post.description}
+            bookmarkStatus={post.bookmark}
+            createdAt={post.createdAt}
           />
         ))}
       </View>

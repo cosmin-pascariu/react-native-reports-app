@@ -26,6 +26,7 @@ export default function SignUpScreen() {
     password: '',
     profileImage: '',
     fullName: 'anonim',
+    posts: [],
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -44,6 +45,7 @@ export default function SignUpScreen() {
         email: userData.email,
         password: userData.password,
         profileImage: userData.profileImage,
+        posts: userData.posts,
       })
       .then(() => {
         console.log('Document successfully written!');

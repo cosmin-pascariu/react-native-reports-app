@@ -16,7 +16,8 @@ import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
-import uuid from 'react-native-uuid';
+import auth from '@react-native-firebase/auth';
+// import MapView from 'react-native-maps';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -86,7 +87,8 @@ export default function AddScreen() {
     });
     await Promise.all(promises);
     const post = {
-      id: uuid.v4(),
+      postUserName: auth().currentUser.uid,
+      postUserProfilePicture: auth().currentUser.photoURL,
       images: imagesPath,
       title: title,
       location: 'Suceava, Romania',
@@ -153,6 +155,15 @@ export default function AddScreen() {
         )}
         <Button title="Submit" onPress={submitImages} />
         <Button title="Console" onPress={() => showConsole()} />
+        {/* <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: 45.65,
+            longitude: 25.5,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        /> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -206,5 +217,10 @@ const styles = StyleSheet.create({
     color: '#303030',
     textDecoration: 'none',
     fontWeight: 'bold',
+  },
+  map: {
+    width: '100%',
+    height: 500,
+    backgroundColor: '#000',
   },
 });

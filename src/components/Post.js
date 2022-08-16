@@ -13,6 +13,7 @@ import React, {useState, useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
+import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
 const WIDTH = Dimensions.get('window').width;
@@ -28,7 +29,7 @@ export default function Post({
   bookmarkStatus,
   createdAt,
 }) {
-  const [savedPost, setSavedPost] = useState(false);
+  const [savedPost, setSavedPost] = useState(bookmarkStatus);
   const [isImportant, setIsImportant] = useState(false);
   const [isGood, setIsGood] = useState(false);
   const [isNotGood, setIsNotGood] = useState(false);
@@ -38,6 +39,7 @@ export default function Post({
 
   const [imgActive, setImgActive] = useState(0);
   const [images, setImages] = useState([]);
+  const [postId, setPostId] = useState();
 
   const onchange = nativeEvent => {
     if (nativeEvent) {
@@ -50,10 +52,65 @@ export default function Post({
     }
   };
 
+  const getPostId = async () => {
+    const postID = await firestore()
+      .collection('posts')
+      .get()
+      .then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          // if (doc.data().createdAt === createdAt) {
+          //   setPostId(doc.id);
+          // }
+          // console.log('id', doc.id);
+          // console.log('1:', doc.data().createdAt);
+          // console.log('2:', createdAt);
+          setPostId(doc.id);
+        });
+      });
+  };
+
   const onBookmarkPress = () => {
-    setSavedPost(!savedPost);
-    console.log(savedPost);
-    updateBookmark();
+    getPostId();
+    console.log('postId', postId);
+    if (savedPost) {
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          bookmark: false,
+        })
+        .then(() => {
+          setSavedPost(false);
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .then(() => {
+          Alert.alert('Bookmark Removed');
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          bookmark: true,
+        })
+        .then(() => {
+          setSavedPost(true);
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .then(() => {
+          Alert.alert('Bookmark Added');
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
   };
 
   const onImportantPress = () => {
@@ -68,24 +125,6 @@ export default function Post({
     setIsNotGood(!isNotGood);
     console.log(isNotGood);
   };
-
-  const updateBookmark = () => {
-    if (savedPost) {
-      firestore()
-        .collection('posts')
-        .doc(createdAt)
-        .update({
-          bookmark: true,
-        })
-        .then(() => {
-          console.log('Bookmark updated');
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  };
-
   useEffect(() => {
     const getImageFromStorage = async () => {
       const imagesFromStorage = [];
@@ -96,6 +135,7 @@ export default function Post({
       setImages(imagesFromStorage);
     };
     getImageFromStorage();
+    console.log('tralala', userProfileImage);
   }, []);
 
   const getPostedTime = () => {
@@ -127,7 +167,11 @@ export default function Post({
   return (
     <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
-        <Image source={userProfileImage} style={styles.profileImage} />
+        <Image source={{uri: userProfileImage}} style={styles.profileImage} />
+        {/* <Image
+          source={auth().currentUser.photoURL}
+          style={styles.profileImage}
+        /> */}
         <View>
           <Text style={styles.profileName}>{userProfileName}</Text>
           <Text style={styles.postLocation}>{location}</Text>
@@ -219,7 +263,10 @@ export default function Post({
         }}
       />
       <View style={styles.commentContainer}>
-        <Image source={userProfileImage} style={styles.profileImage} />
+        <Image
+          source={{uri: auth().currentUser.photoURL}}
+          style={styles.profileImage}
+        />
         <TextInput
           style={styles.postComment}
           placeholder="Add a comment..."
@@ -276,6 +323,7 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     marginRight: 5,
+    objectFit: 'cover',
   },
   profileName: {
     fontSize: 14,

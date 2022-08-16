@@ -8,9 +8,10 @@ import FavouritesScreen from './FavouritesScreen';
 import MyPostsScreen from './MyPostsScreen';
 import SplashScreen from './SplashScreen';
 import HomeScreen from './HomeScreen';
+import MyProfileScreen from './MyProfileScreen';
 import SearchScreen from './SearchScreen';
 import firestore from '@react-native-firebase/firestore';
-
+import auth from '@react-native-firebase/auth';
 import {AuthContext} from '../components/context';
 
 const Tab = createBottomTabNavigator();
@@ -23,7 +24,7 @@ export default function AppNavigatorScreen({navigation}) {
   useEffect(() => {
     firestore()
       .collection('posts')
-      .where('favourited', '==', true)
+      .where('bookmark', '==', true)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
@@ -31,7 +32,20 @@ export default function AppNavigatorScreen({navigation}) {
         });
         setNumberOfFav(docs.length);
       });
+    updateProfileData();
   }, []);
+
+  const updateProfileData = async () => {
+    const user = auth().currentUser;
+    const userUpdate = {
+      displayName: 'Anonim',
+      photoURL:
+        auth().currentUser.photoURL ||
+        'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
+    };
+    await user.updateProfile(userUpdate);
+    console.log('url', user.photoURL);
+  };
 
   return (
     <Tab.Navigator
@@ -69,8 +83,8 @@ export default function AppNavigatorScreen({navigation}) {
         tabBarBadgeStyle: {backgroundColor: 'red'},
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="Add" component={AddScreen} />
+      <Tab.Screen name="Search" component={SearchScreen} options={{width: 0}} />
+      <Tab.Screen name="Add" component={AddScreen} options={{visible: false}} />
       <Tab.Screen
         name="Favourites"
         component={FavouritesScreen}

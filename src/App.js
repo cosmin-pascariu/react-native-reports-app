@@ -35,14 +35,17 @@ import {
   Switch,
 } from 'react-native-paper';
 import {authContext} from './components/context';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import auth from '@react-native-firebase/auth';
+import auth, {getAuth, updateProfile} from '@react-native-firebase/auth';
+import MyProfileScreen from './screens/MyProfileScreen';
 
 const RootDrawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
   const {signOut} = React.useContext(AuthContext);
+  const navigation = useNavigation();
 
   const userSignOut = () => {
     auth()
@@ -54,12 +57,12 @@ function CustomDrawerContent(props) {
     <View style={styles.customContainer}>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
-        <Text>MyProfile</Text>
+        <Text>text</Text>
         <Drawer.Section style={styles.drawerSection}>
           <DrawerItem
             label="My profile"
             icon={({color, size}) => (
-              <Ionicons name="exit" color={color} size={size} />
+              <Ionicons name="person-circle" color={color} size={size} />
             )}
           />
         </Drawer.Section>
