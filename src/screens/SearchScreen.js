@@ -3,6 +3,7 @@ import React, {useState, useEffect} from 'react';
 import firestore from '@react-native-firebase/firestore';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import auth from '@react-native-firebase/auth';
+import uuid from 'react-native-uuid';
 
 export default function SearchScreen({navigation}) {
   const [users, setUsers] = useState([]);
@@ -78,7 +79,7 @@ export default function SearchScreen({navigation}) {
     <SafeAreaView
       style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       {users.map(user => (
-        <Text key={user.id}>FullName: {user.name} </Text>
+        <Text key={uuid.v4()}>FullName: {user.name} </Text>
       ))}
       <Button
         title="Show user data in console"

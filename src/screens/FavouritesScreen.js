@@ -10,6 +10,7 @@ export default function FavouritesScreen() {
   useEffect(() => {
     firestore()
       .collection('posts')
+      .where('bookmark', '==', true)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {

@@ -23,6 +23,7 @@ export default function AppNavigatorScreen({navigation}) {
   useEffect(() => {
     firestore()
       .collection('posts')
+      .where('favourited', '==', true)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {

@@ -8,7 +8,6 @@ import {
   Image,
   View,
   Alert,
-  ActivityIndicator,
   Dimensions,
 } from 'react-native';
 import React, {useState} from 'react';
@@ -87,11 +86,16 @@ export default function AddScreen() {
     });
     await Promise.all(promises);
     const post = {
+      id: uuid.v4(),
       images: imagesPath,
       title: title,
       location: 'Suceava, Romania',
       description: description,
       bookmark: false,
+      important: false,
+      good: false,
+      bad: false,
+      createdAt: new Date(),
     };
     await firestore().collection('posts').add(post);
     Alert.alert('Success', 'Post added successfully');

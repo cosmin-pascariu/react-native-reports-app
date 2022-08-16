@@ -13,6 +13,7 @@ import React, {useState, useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
+import firestore from '@react-native-firebase/firestore';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -25,6 +26,7 @@ export default function Post({
   location,
   description,
   bookmarkStatus,
+  createdAt,
 }) {
   const [savedPost, setSavedPost] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
@@ -48,6 +50,42 @@ export default function Post({
     }
   };
 
+  const onBookmarkPress = () => {
+    setSavedPost(!savedPost);
+    console.log(savedPost);
+    updateBookmark();
+  };
+
+  const onImportantPress = () => {
+    setIsImportant(!isImportant);
+    console.log(isImportant);
+  };
+  const onGoodPress = () => {
+    setIsGood(!isGood);
+    console.log(isGood);
+  };
+  const onNotGoodPress = () => {
+    setIsNotGood(!isNotGood);
+    console.log(isNotGood);
+  };
+
+  const updateBookmark = () => {
+    if (savedPost) {
+      firestore()
+        .collection('posts')
+        .doc(createdAt)
+        .update({
+          bookmark: true,
+        })
+        .then(() => {
+          console.log('Bookmark updated');
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  };
+
   useEffect(() => {
     const getImageFromStorage = async () => {
       const imagesFromStorage = [];
@@ -59,6 +97,32 @@ export default function Post({
     };
     getImageFromStorage();
   }, []);
+
+  const getPostedTime = () => {
+    const date = new Date();
+    const postedDate = createdAt.toDate();
+    const postedTime = date.getTime() - postedDate.getTime();
+    const postedTimeInMinutes = postedTime / 60000;
+    if (postedTimeInMinutes < 1) {
+      return 'Just now';
+    }
+    if (postedTimeInMinutes < 60) {
+      return Math.floor(postedTimeInMinutes) + ' minutes ago';
+    }
+    if (postedTimeInMinutes < 1440) {
+      return Math.floor(postedTimeInMinutes / 60) + ' hours ago';
+    }
+    if (postedTimeInMinutes < 10080) {
+      return Math.floor(postedTimeInMinutes / 1440) + ' days ago';
+    }
+    if (postedTimeInMinutes < 43200) {
+      return Math.floor(postedTimeInMinutes / 10080) + ' weeks ago';
+    }
+    if (postedTimeInMinutes < 518400) {
+      return Math.floor(postedTimeInMinutes / 43200) + ' months ago';
+    }
+    return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
+  };
 
   return (
     <View style={styles.postContainer}>
@@ -131,10 +195,7 @@ export default function Post({
         <Ionicons
           name={savedPost ? 'bookmark' : 'bookmark-outline'}
           style={{color: savedPost ? 'black' : '#888', fontSize: 25}}
-          onPress={() => {
-            setSavedPost(!savedPost);
-            bookmarkStatus = savedPost;
-          }}
+          onPress={() => onBookmarkPress()}
         />
       </View>
       <View
@@ -150,7 +211,7 @@ export default function Post({
       <Text style={styles.seeMore} onPress={() => setSeemore(!seeMore)}>
         {seeMore ? 'see less' : 'see more'}
       </Text>
-      <Text style={styles.seePostTime}>2 hours ago</Text>
+      <Text style={styles.seePostTime}>{getPostedTime()}</Text>
       <View
         style={{
           borderBottomColor: '#999',
