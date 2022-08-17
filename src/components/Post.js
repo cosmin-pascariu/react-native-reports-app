@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
+import {useRoute} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
@@ -164,18 +165,23 @@ export default function Post({
     return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
   };
 
+  const route = useRoute();
+
   return (
     <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
         <Image source={{uri: userProfileImage}} style={styles.profileImage} />
-        {/* <Image
-          source={auth().currentUser.photoURL}
-          style={styles.profileImage}
-        /> */}
         <View>
           <Text style={styles.profileName}>{userProfileName}</Text>
           <Text style={styles.postLocation}>{location}</Text>
         </View>
+        {route.name === 'MyPosts' && (
+          <Ionicons
+            name="ellipsis-vertical-sharp"
+            style={styles.settingButtonIcon}
+            onPress={() => Alert.alert('This will open settings!')}
+          />
+        )}
       </View>
       <ScrollView
         onScroll={({nativeEvent}) => onchange(nativeEvent)}
@@ -412,5 +418,11 @@ const styles = StyleSheet.create({
     margin: 3,
     color: '#888',
     fontSize: 20,
+  },
+  settingButtonIcon: {
+    fontSize: 24,
+    color: '#323232',
+    marginLeft: 'auto',
+    marginRight: 20,
   },
 });

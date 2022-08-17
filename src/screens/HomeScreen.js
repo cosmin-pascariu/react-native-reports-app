@@ -33,7 +33,7 @@ export default function HomeScreen() {
               'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
             }
             userProfileName={post.postUserName}
-            location="Bucharest, Romania"
+            location={post.location}
             postImages={post.images}
             title={post.title}
             description={post.description}

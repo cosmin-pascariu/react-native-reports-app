@@ -21,17 +21,17 @@ import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import Geocoder from 'react-native-geocoding';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
 
+Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
+
 export default function AddScreen() {
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
-  const [location, setLocation] = useState({
-    latitude: 0,
-    longitude: 0,
-  });
+  const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
 
@@ -80,12 +80,17 @@ export default function AddScreen() {
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421,
     });
-
-    setLocation({
-      latitude: e.nativeEvent.coordinate.latitude,
-      longitude: e.nativeEvent.coordinate.longitude,
-    });
     setMarkers([datas]);
+
+    Geocoder.from(
+      e.nativeEvent.coordinate.latitude,
+      e.nativeEvent.coordinate.longitude,
+    )
+      .then(json => {
+        const address = json.results[0].formatted_address;
+        setLocation(address);
+      })
+      .catch(error => console.warn(error));
   }
 
   const takePhotoFromCamera = () => {
@@ -144,7 +149,7 @@ export default function AddScreen() {
     });
     await Promise.all(promises);
     const post = {
-      postUserName: auth().currentUser.uid,
+      postUserName: auth().currentUser.displayName,
       postUserProfilePicture: auth().currentUser.photoURL,
       images: imagesPath,
       title: title,
