@@ -29,7 +29,6 @@ export default function HomeScreen() {
           <Post
             key={uuid.v4()}
             userId={post.userId}
-            // userProfileImage={post.userProfileImage}
             userProfileImage={
               'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
             }

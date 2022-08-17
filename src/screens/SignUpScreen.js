@@ -147,7 +147,8 @@ export default function SignUpScreen() {
           </Pressable>
           <Pressable
             style={styles.signUpButton}
-            onPress={() => navigation.navigate('SignInScreen')}>
+            // onPress={() => navigation.navigate('SignInScreen')}>
+            onPress={() => navigation.goBack()}>
             <Text style={styles.buttonTextBlue}>Sign In</Text>
           </Pressable>
         </View>

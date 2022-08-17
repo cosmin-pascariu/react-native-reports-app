@@ -9,15 +9,18 @@ import {
   View,
   Alert,
   Dimensions,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Textarea from '../components/Textarea';
 import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
-// import MapView from 'react-native-maps';
+import MapView, {Marker} from 'react-native-maps';
+import Geolocation from '@react-native-community/geolocation';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -25,11 +28,65 @@ const HEIGHT = Dimensions.get('window').height;
 export default function AddScreen() {
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState({
+    latitude: 0,
+    longitude: 0,
+  });
   const [description, setDescription] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [transferred, setTransferred] = useState(0);
   const [image, setImage] = useState(null);
+
+  const [region, setRegion] = useState(null);
+  const [markers, setMarkers] = useState([]);
+
+  useEffect(() => {
+    getMyLocation();
+  }),
+    [];
+
+  function getMyLocation() {
+    Geolocation.getCurrentPosition(
+      info => {
+        setRegion({
+          latitude: info.coords.latitude,
+          longitude: info.coords.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        });
+      },
+      () => {
+        console.log('error');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 2000,
+      },
+    );
+  }
+
+  function newMarker(e) {
+    let datas = {
+      key: markers.length,
+      coords: {
+        latitude: e.nativeEvent.coordinate.latitude,
+        longitude: e.nativeEvent.coordinate.longitude,
+      },
+      pinColor: '#f00',
+      title: 'Problem Location',
+      description: 'The problem is here',
+    };
+    setRegion({
+      latitude: e.nativeEvent.coordinate.latitude,
+      longitude: e.nativeEvent.coordinate.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    });
+
+    setLocation({
+      latitude: e.nativeEvent.coordinate.latitude,
+      longitude: e.nativeEvent.coordinate.longitude,
+    });
+    setMarkers([datas]);
+  }
 
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
@@ -91,12 +148,12 @@ export default function AddScreen() {
       postUserProfilePicture: auth().currentUser.photoURL,
       images: imagesPath,
       title: title,
-      location: 'Suceava, Romania',
+      location: location,
       description: description,
       bookmark: false,
-      important: false,
-      good: false,
-      bad: false,
+      important: 0,
+      good: 0,
+      bad: 0,
       createdAt: new Date(),
     };
     await firestore().collection('posts').add(post);
@@ -105,6 +162,7 @@ export default function AddScreen() {
     setTitle('');
     setLocation('');
     setDescription('');
+    setMarkers([]);
   };
 
   const showConsole = () => {
@@ -153,17 +211,42 @@ export default function AddScreen() {
             ))}
           </View>
         )}
+
+        <MapView
+          onMapReady={() => {
+            Platform.OS !== 'ios'
+              ? PermissionsAndroid.request(
+                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                ).then(granted => {
+                  console.log('Granted:', granted);
+                })
+              : null;
+          }}
+          style={styles.map}
+          region={region}
+          zoomEnabled={true}
+          showsUserLocation={true}
+          locationEnabled={true}
+          showsMyLocationButton={true}
+          showsCompass={true}
+          showsScale={true}
+          showsBuildings={true}
+          showsIndoors={true}
+          showsIndoorLevelPicker={true}
+          showsPointsOfInterest={true}
+          onPress={e => newMarker(e)}>
+          {markers.map(marker => (
+            <Marker
+              key={marker.key}
+              coordinate={marker.coords}
+              pinColor={marker.pinColor}
+              title={marker.title}
+              description={marker.description}
+            />
+          ))}
+        </MapView>
         <Button title="Submit" onPress={submitImages} />
         <Button title="Console" onPress={() => showConsole()} />
-        {/* <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: 45.65,
-            longitude: 25.5,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          }}
-        /> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -219,8 +302,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   map: {
-    width: '100%',
-    height: 500,
+    width: WIDTH - 30,
+    height: HEIGHT / 2 - 20,
     backgroundColor: '#000',
   },
 });

@@ -19,8 +19,6 @@ const Tab = createBottomTabNavigator();
 export default function AppNavigatorScreen({navigation}) {
   const [numberOfFav, setNumberOfFav] = useState(null);
 
-  const {signOut} = React.useContext(AuthContext);
-
   useEffect(() => {
     firestore()
       .collection('posts')
@@ -44,7 +42,6 @@ export default function AppNavigatorScreen({navigation}) {
         'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
     };
     await user.updateProfile(userUpdate);
-    console.log('url', user.photoURL);
   };
 
   return (
@@ -72,7 +69,11 @@ export default function AppNavigatorScreen({navigation}) {
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>{route.name}</Text>
             <Image
-              source={require('../assets/images.jpeg')}
+              source={{
+                uri:
+                  auth().currentUser.photoURL ||
+                  'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
+              }}
               style={styles.headerProfile}
               onPress={() => navigation.openDrawer()}
             />

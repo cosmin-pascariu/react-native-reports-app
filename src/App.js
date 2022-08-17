@@ -44,7 +44,7 @@ import MyProfileScreen from './screens/MyProfileScreen';
 const RootDrawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
-  const {signOut} = React.useContext(AuthContext);
+  // const {signOut} = React.useContext(AuthContext);
   const navigation = useNavigation();
 
   const userSignOut = () => {
@@ -57,7 +57,6 @@ function CustomDrawerContent(props) {
     <View style={styles.customContainer}>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
-        <Text>text</Text>
         <Drawer.Section style={styles.drawerSection}>
           <DrawerItem
             label="My profile"
@@ -119,108 +118,13 @@ function App() {
     return subscriber; // unsubscribe on unmount
   }, []);
 
-  const initialLoginState = {
-    isLoading: true,
-    userEmail: null,
-    userToken: null,
-  };
-
-  const loginReducer = (prevState, action) => {
-    switch (action.type) {
-      case 'RETRIEVE_TOKEN':
-        return {
-          ...prevState,
-          isLoading: false,
-          userToken: action.token,
-        };
-      case 'LOGIN':
-        return {
-          ...prevState,
-          isLoading: false,
-          userEmail: action.id,
-          userToken: action.token,
-        };
-      case 'LOGOUT':
-        return {
-          ...prevState,
-          isLoading: false,
-          userEmail: null,
-          userToken: null,
-        };
-      case 'REGISTER':
-        return {
-          ...prevState,
-          isLoading: false,
-          userEmail: action.id,
-          userToken: action.token,
-        };
-    }
-  };
-
-  const [loginState, dispatch] = React.useReducer(
-    loginReducer,
-    initialLoginState,
-  );
-
-  const authContext = useMemo(
-    () => ({
-      signIn: async (email, password) => {
-        let userToken;
-        userToken = null;
-        if (email == 'email' && password == 'password') {
-          try {
-            userToken = 'abc123';
-            await AsyncStorage.setItem('userToken', userToken);
-          } catch (error) {
-            console.log(error);
-          }
-        }
-        dispatch({type: 'LOGIN', id: email, token: userToken});
-      },
-      signOut: async () => {
-        try {
-          await AsyncStorage.removeItem('userToken');
-        } catch (error) {
-          console.log(error);
-        }
-        dispatch({type: 'LOGOUT'});
-      },
-      signUp: () => {
-        // setUserToken('userToken');
-        // setIsLoading(false);
-      },
-    }),
-    [],
-  );
-
-  useEffect(() => {
-    setTimeout(async () => {
-      let userToken;
-      userToken = null;
-      try {
-        userToken = await AsyncStorage.getItem('userToken');
-      } catch (error) {
-        console.log(error);
-      }
-      dispatch({type: 'RETRIEVE_TOKEN', token: userToken});
-    }, 1000);
-  }, []);
-
-  if (loginState.isLoading) {
-    return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <AuthContext.Provider value={authContext}>
       <SafeAreaProvider>
         <NavigationContainer>
           {user ? (
             <RootDrawer.Navigator
-              useLegacyImplementation={false}
+              // useLegacyImplementation
               screenOptions={{
                 headerShown: false,
               }}

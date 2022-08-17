@@ -25,8 +25,11 @@ export default function MyPostsScreen() {
         {posts.map(post => (
           <Post
             key={uuid.v4()}
-            userProfileImage={require('../assets/images.jpeg')}
-            userProfileName="Costel Anton"
+            userId={post.userId}
+            userProfileImage={
+              'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
+            }
+            userProfileName={post.postUserName}
             location="Bucharest, Romania"
             postImages={post.images}
             title={post.title}
