@@ -1,4 +1,11 @@
-import {StyleSheet, Text, View, ScrollView} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Image,
+  Dimensions,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Post from '../components/Post';
 import firestore from '@react-native-firebase/firestore';
@@ -39,6 +46,15 @@ export default function FavouritesScreen() {
             createdAt={post.createdAt}
           />
         ))}
+        {posts.length === 0 && (
+          <View style={styles.noPosts}>
+            <Image
+              source={require('../assets/noData.png')}
+              style={styles.noDataImage}
+            />
+            <Text style={styles.noDataText}>No favourites yet</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -48,5 +64,21 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  noPosts: {
+    height: Dimensions.get('window').height - 200,
+    width: Dimensions.get('window').width,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noDataImage: {
+    width: Dimensions.get('window').width * 0.75,
+    height: Dimensions.get('window').width * 0.75,
+  },
+  noDataText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#323232',
+    marginTop: 10,
   },
 });

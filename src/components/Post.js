@@ -27,10 +27,11 @@ export default function Post({
   title,
   location,
   description,
-  bookmarkStatus,
   createdAt,
 }) {
-  const [savedPost, setSavedPost] = useState(bookmarkStatus);
+  const route = useRoute();
+
+  const [savedPost, setSavedPost] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
   const [isGood, setIsGood] = useState(false);
   const [isNotGood, setIsNotGood] = useState(false);
@@ -54,78 +55,35 @@ export default function Post({
   };
 
   const getPostId = async () => {
-    const postID = await firestore()
+    const postId = await firestore()
       .collection('posts')
-      .get()
-      .then(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          // if (doc.data().createdAt === createdAt) {
-          //   setPostId(doc.id);
-          // }
-          // console.log('id', doc.id);
-          // console.log('1:', doc.data().createdAt);
-          // console.log('2:', createdAt);
-          setPostId(doc.id);
-        });
+      .onSnapshot(snapshot => {
+        let docs = [];
+        snapshot.forEach(doc => {
+          if (doc.data().location === location) {
+            setPostId(doc.id);
+            console.log('IDD', doc.id);
+          }
+        }),
+          console.log();
       });
   };
 
   const onBookmarkPress = () => {
+    // console.log('FFDSF', postId);
     getPostId();
-    console.log('postId', postId);
-    if (savedPost) {
+    setSavedPost(!savedPost);
+    if (postId && !savedPost) {
       firestore()
         .collection('posts')
         .doc(postId)
         .update({
-          bookmark: false,
-        })
-        .then(() => {
-          setSavedPost(false);
-        })
-        .catch(error => {
-          console.log(error);
-        })
-        .then(() => {
-          Alert.alert('Bookmark Removed');
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    } else {
-      firestore()
-        .collection('posts')
-        .doc(postId)
-        .update({
-          bookmark: true,
-        })
-        .then(() => {
-          setSavedPost(true);
-        })
-        .catch(error => {
-          console.log(error);
-        })
-        .then(() => {
-          Alert.alert('Bookmark Added');
-        })
-        .catch(error => {
-          console.log(error);
+          usersList: firestore.FieldValue.arrayUnion(auth().currentUser.uid),
         });
     }
   };
 
-  const onImportantPress = () => {
-    setIsImportant(!isImportant);
-    console.log(isImportant);
-  };
-  const onGoodPress = () => {
-    setIsGood(!isGood);
-    console.log(isGood);
-  };
-  const onNotGoodPress = () => {
-    setIsNotGood(!isNotGood);
-    console.log(isNotGood);
-  };
+  //get images from firebase storage
   useEffect(() => {
     const getImageFromStorage = async () => {
       const imagesFromStorage = [];
@@ -163,8 +121,6 @@ export default function Post({
     }
     return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
   };
-
-  const route = useRoute();
 
   return (
     <View style={styles.postContainer}>

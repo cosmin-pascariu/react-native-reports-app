@@ -3,6 +3,7 @@ import React, {useState, useEffect} from 'react';
 import Post from '../components/Post';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
+import auth from '@react-native-firebase/auth';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
@@ -10,11 +11,13 @@ export default function MyPostsScreen() {
   useEffect(() => {
     firestore()
       .collection('posts')
+      .where('userId', '==', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
           docs.push(doc.data());
         });
+        console.log(docs);
         setPosts(docs);
       });
   }, []);

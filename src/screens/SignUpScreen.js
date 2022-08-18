@@ -26,7 +26,8 @@ export default function SignUpScreen() {
     password: '',
     profileImage: '',
     fullName: 'anonim',
-    posts: [],
+    myPosts: [],
+    favouritePosts: [],
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -41,11 +42,13 @@ export default function SignUpScreen() {
     firestore()
       .collection('users')
       .add({
+        uid: auth().currentUser.uid,
         name: userData.fullName,
         email: userData.email,
         password: userData.password,
         profileImage: userData.profileImage,
-        posts: userData.posts,
+        myPosts: userData.myPosts,
+        favouritePosts: userData.favouritePosts,
       })
       .then(() => {
         console.log('Document successfully written!');

@@ -7,6 +7,7 @@ import {
   Image,
   View,
   Alert,
+  Button,
   Dimensions,
   Platform,
   PermissionsAndroid,
@@ -32,6 +33,8 @@ Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
 
 export default function AddScreen() {
   const navigation = useNavigation();
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [currentPostId, setCurrentPostId] = useState([]);
 
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
@@ -155,6 +158,7 @@ export default function AddScreen() {
     });
     await Promise.all(promises);
     const post = {
+      userId: auth().currentUser.uid,
       postUserName: auth().currentUser.displayName,
       postUserProfilePicture: auth().currentUser.photoURL,
       images: imagesPath,
@@ -169,7 +173,19 @@ export default function AddScreen() {
       good: 0,
       bad: 0,
       createdAt: new Date(),
+      usersList: [],
     };
+
+    // // getUserId;
+
+    // firestore()
+    //   .collection('users')
+    //   .doc(currentUserId)
+    //   .update({
+    //     myPosts: firestore.FieldValue.arrayUnion(post),
+    //     myPosts: currentPostId,
+    //   });
+
     await firestore().collection('posts').add(post);
     Alert.alert('Success', 'Post added successfully');
     setImages([]);
@@ -178,6 +194,8 @@ export default function AddScreen() {
     setDescription('');
     setMarkers([]);
   };
+
+  const showConsole = () => {};
 
   return (
     <SafeAreaView>
@@ -225,7 +243,7 @@ export default function AddScreen() {
             ))}
           </View>
         )}
-
+        <Text style={styles.label}>Location</Text>
         <MapView
           onMapReady={() => {
             Platform.OS !== 'ios'
@@ -259,9 +277,19 @@ export default function AddScreen() {
             />
           ))}
         </MapView>
-        <Pressable onPress={() => submitImages()} style={styles.submitButton}>
+        {/* <Pressable onPress={submitImages} style={styles.submitButton}>
           <Text style={styles.submitButtonText}>Submit</Text>
-        </Pressable>
+        </Pressable> */}
+        <Button
+          title="Submit"
+          onPress={submitImages}
+          style={styles.submitButton}
+        />
+        <Button
+          title="Console"
+          onPress={() => showConsole()}
+          style={styles.submitButton}
+        />
       </ScrollView>
     </SafeAreaView>
   );
