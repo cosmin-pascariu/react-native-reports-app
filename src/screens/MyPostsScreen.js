@@ -4,13 +4,12 @@ import Post from '../components/Post';
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 
-export default function FavouritesScreen() {
+export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     firestore()
       .collection('posts')
-      .where('bookmark', '==', true)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
@@ -20,7 +19,6 @@ export default function FavouritesScreen() {
         setPosts(docs);
       });
   }, []);
-
   return (
     <ScrollView>
       <View style={styles.container}>

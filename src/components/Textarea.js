@@ -11,9 +11,7 @@ const CustomTextInput = props => {
   );
 };
 
-const Textarea = () => {
-  const [value, onChangeText] = React.useState('');
-
+const Textarea = ({textareaValue, setTextareaValue}) => {
   return (
     <View>
       <CustomTextInput
@@ -23,6 +21,8 @@ const Textarea = () => {
         numberOfLines={8}
         maxLength={300}
         editable
+        value={textareaValue}
+        onChangeText={text => setTextareaValue(text)}
       />
     </View>
   );
