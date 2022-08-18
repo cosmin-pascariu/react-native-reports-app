@@ -136,7 +136,6 @@ export default function Post({
       setImages(imagesFromStorage);
     };
     getImageFromStorage();
-    console.log('tralala', userProfileImage);
   }, []);
 
   const getPostedTime = () => {

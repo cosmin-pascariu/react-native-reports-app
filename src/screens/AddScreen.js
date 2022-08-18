@@ -4,13 +4,14 @@ import {
   Text,
   TextInput,
   SafeAreaView,
-  Button,
   Image,
   View,
   Alert,
   Dimensions,
   Platform,
   PermissionsAndroid,
+  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Textarea from '../components/Textarea';
@@ -22,6 +23,7 @@ import auth from '@react-native-firebase/auth';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
+import {useNavigation} from '@react-navigation/native';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -29,6 +31,8 @@ const HEIGHT = Dimensions.get('window').height;
 Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
 
 export default function AddScreen() {
+  const navigation = useNavigation();
+
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
@@ -64,28 +68,28 @@ export default function AddScreen() {
   }
 
   function newMarker(e) {
+    const latitude = e.nativeEvent.coordinate.latitude;
+    const longitude = e.nativeEvent.coordinate.longitude;
+
     let datas = {
       key: markers.length,
       coords: {
-        latitude: e.nativeEvent.coordinate.latitude,
-        longitude: e.nativeEvent.coordinate.longitude,
+        latitude: latitude,
+        longitude: longitude,
       },
       pinColor: '#f00',
       title: 'Problem Location',
       description: 'The problem is here',
     };
     setRegion({
-      latitude: e.nativeEvent.coordinate.latitude,
-      longitude: e.nativeEvent.coordinate.longitude,
+      latitude: latitude,
+      longitude: longitude,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421,
     });
     setMarkers([datas]);
 
-    Geocoder.from(
-      e.nativeEvent.coordinate.latitude,
-      e.nativeEvent.coordinate.longitude,
-    )
+    Geocoder.from(latitude, longitude)
       .then(json => {
         const address = json.results[0].formatted_address;
         setLocation(address);
@@ -118,6 +122,8 @@ export default function AddScreen() {
   const takeMultiplePhotos = () => {
     ImagePicker.openPicker({
       multiple: true,
+      width: WIDTH,
+      height: HEIGHT / 2 - 20,
     })
       .then(images => {
         images.map(image => {
@@ -154,8 +160,11 @@ export default function AddScreen() {
       images: imagesPath,
       title: title,
       location: location,
+      coordinates: {
+        latitude: region.latitude,
+        longitude: region.longitude,
+      },
       description: description,
-      bookmark: false,
       important: 0,
       good: 0,
       bad: 0,
@@ -168,10 +177,6 @@ export default function AddScreen() {
     setLocation('');
     setDescription('');
     setMarkers([]);
-  };
-
-  const showConsole = () => {
-    console.log('Images::', images);
   };
 
   return (
@@ -191,18 +196,23 @@ export default function AddScreen() {
         />
         <Text style={styles.label}>Images & Video</Text>
         <View style={styles.mediaButtons}>
-          <Ionicons
-            name="ios-camera"
-            size={30}
-            color="black"
-            onPress={takePhotoFromCamera}
-          />
-          <Ionicons
-            name="ios-images"
-            size={30}
-            color="black"
-            onPress={takeMultiplePhotos}
-          />
+          <TouchableOpacity onPress={takePhotoFromCamera}>
+            <View style={styles.customImgButton}>
+              {/* <Ionicons name="ios-camera" size={30} color="black" /> */}
+              <Image
+                source={require('../assets/camera.png')}
+                style={styles.customImgBackground}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={takeMultiplePhotos}>
+            <View style={styles.customImgButton}>
+              <Image
+                source={require('../assets/gallery.png')}
+                style={styles.customImgBackground}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
         {images.length > 0 && (
           <View style={styles.loadedImages}>
@@ -211,7 +221,6 @@ export default function AddScreen() {
                 key={index}
                 source={{uri: image.path}}
                 style={styles.loadedImage}
-                resizeMode="contain"
               />
             ))}
           </View>
@@ -225,7 +234,7 @@ export default function AddScreen() {
                 ).then(granted => {
                   console.log('Granted:', granted);
                 })
-              : null;
+              : navigation.navigate('HomeScreen');
           }}
           style={styles.map}
           region={region}
@@ -250,8 +259,9 @@ export default function AddScreen() {
             />
           ))}
         </MapView>
-        <Button title="Submit" onPress={submitImages} />
-        <Button title="Console" onPress={() => showConsole()} />
+        <Pressable onPress={() => submitImages()} style={styles.submitButton}>
+          <Text style={styles.submitButtonText}>Submit</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -281,6 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
     marginBottom: 20,
+    paddingHorizontal: 1,
   },
   loadedImages: {
     flexDirection: 'row',
@@ -289,11 +300,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   loadedImage: {
-    width: '45%',
-    height: 200,
+    width: WIDTH / 2 - 20,
+    height: WIDTH / 2 - 20,
     marginBottom: 10,
-    marginRight: 10,
-    objectFit: 'cover',
+    marginRight: 'auto',
+    marginLeft: 'auto',
+    resizeMode: 'cover',
+    backgroundColor: '#000',
+    borderRadius: 25,
   },
   progress: {
     flexDirection: 'row',
@@ -310,5 +324,50 @@ const styles = StyleSheet.create({
     width: WIDTH - 30,
     height: HEIGHT / 2 - 20,
     backgroundColor: '#000',
+  },
+  customImgButton: {
+    width: WIDTH / 2 - 20,
+    height: WIDTH / 2 - 20,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  customImgBackground: {
+    width: '75%',
+    height: '75%',
+    resizeMode: 'cover',
+    borderRadius: 25,
+  },
+  submitButton: {
+    width: WIDTH - 30,
+    height: 50,
+    borderRadius: 25,
+    marginVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0356e8',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  submitButtonText: {
+    fontSize: 14,
+    color: '#fff',
+    textDecoration: 'none',
+    fontWeight: 'bold',
   },
 });

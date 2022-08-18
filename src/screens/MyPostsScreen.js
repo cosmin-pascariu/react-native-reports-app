@@ -15,7 +15,6 @@ export default function MyPostsScreen() {
         snapshot.forEach(doc => {
           docs.push(doc.data());
         });
-        console.log(docs);
         setPosts(docs);
       });
   }, []);

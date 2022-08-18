@@ -16,7 +16,6 @@ export default function FavouritesScreen() {
         snapshot.forEach(doc => {
           docs.push(doc.data());
         });
-        console.log(docs);
         setPosts(docs);
       });
   }, []);
