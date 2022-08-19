@@ -277,14 +277,16 @@ export default function AddScreen() {
             />
           ))}
         </MapView>
-        {/* <Pressable onPress={submitImages} style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>Submit</Text>
-        </Pressable> */}
-        <Button
+        <Pressable onPress={submitImages}>
+          <View style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>Submit</Text>
+          </View>
+        </Pressable>
+        {/* <Button
           title="Submit"
           onPress={submitImages}
           style={styles.submitButton}
-        />
+        /> */}
         <Button
           title="Console"
           onPress={() => showConsole()}
@@ -309,10 +311,20 @@ const styles = StyleSheet.create({
     height: 40,
     marginTop: 10,
     marginBottom: 20,
-    borderWidth: 1,
+    // borderWidth: 1,
     padding: 10,
+    marginHorizontal: 2,
     textDecoration: 'none',
     borderRadius: 8,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   mediaButtons: {
     flexDirection: 'row',

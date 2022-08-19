@@ -22,7 +22,7 @@ export default function AppNavigatorScreen({navigation}) {
   useEffect(() => {
     firestore()
       .collection('posts')
-      .where('bookmark', '==', true)
+      .where('usersList', 'array-contains', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {

@@ -21,6 +21,7 @@ const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
 
 export default function Post({
+  postId,
   userProfileImage,
   userProfileName,
   postImages,
@@ -28,10 +29,16 @@ export default function Post({
   location,
   description,
   createdAt,
+  modalVisible,
+  usersList,
 }) {
   const route = useRoute();
+  usersList === undefined ? (usersList = []) : (usersList = usersList);
+  const bookmarkState = usersList.includes(auth().currentUser.uid)
+    ? true
+    : false;
+  const [savedPost, setSavedPost] = useState(bookmarkState);
 
-  const [savedPost, setSavedPost] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
   const [isGood, setIsGood] = useState(false);
   const [isNotGood, setIsNotGood] = useState(false);
@@ -41,7 +48,6 @@ export default function Post({
 
   const [imgActive, setImgActive] = useState(0);
   const [images, setImages] = useState([]);
-  const [postId, setPostId] = useState();
 
   const onchange = nativeEvent => {
     if (nativeEvent) {
@@ -54,31 +60,35 @@ export default function Post({
     }
   };
 
-  const getPostId = async () => {
-    const postId = await firestore()
-      .collection('posts')
-      .onSnapshot(snapshot => {
-        let docs = [];
-        snapshot.forEach(doc => {
-          if (doc.data().location === location) {
-            setPostId(doc.id);
-            console.log('IDD', doc.id);
-          }
-        }),
-          console.log();
-      });
-  };
-
   const onBookmarkPress = () => {
-    // console.log('FFDSF', postId);
-    getPostId();
     setSavedPost(!savedPost);
-    if (postId && !savedPost) {
+    console.log('usersList', usersList);
+    if (usersList.includes(auth().currentUser.uid)) {
+      usersList.splice(usersList.indexOf(auth().currentUser.uid), 1);
       firestore()
         .collection('posts')
         .doc(postId)
         .update({
-          usersList: firestore.FieldValue.arrayUnion(auth().currentUser.uid),
+          usersList: usersList,
+        })
+        .then(() => {
+          setSavedPost(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          usersList: [...usersList, auth().currentUser.uid],
+        })
+        .then(() => {
+          setSavedPost(true);
+        })
+        .catch(error => {
+          Alert.alert(error.message);
         });
     }
   };
@@ -134,7 +144,7 @@ export default function Post({
           <Ionicons
             name="ellipsis-vertical-sharp"
             style={styles.settingButtonIcon}
-            onPress={() => Alert.alert('This will open settings!')}
+            onPress={() => modalVisible(true)}
           />
         )}
       </View>
@@ -203,12 +213,7 @@ export default function Post({
           onPress={() => onBookmarkPress()}
         />
       </View>
-      <View
-        style={{
-          borderBottomColor: '#999',
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        }}
-      />
+      <View style={styles.hairlineWidth} />
       <Text style={styles.postTitle}>{title}</Text>
       <Text style={styles.postDescription} numberOfLines={seeMore ? 0 : 3}>
         {description}
@@ -217,12 +222,7 @@ export default function Post({
         {seeMore ? 'see less' : 'see more'}
       </Text>
       <Text style={styles.seePostTime}>{getPostedTime()}</Text>
-      <View
-        style={{
-          borderBottomColor: '#999',
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        }}
-      />
+      <View style={styles.hairlineWidth} />
       <View style={styles.commentContainer}>
         <Image
           source={{uri: auth().currentUser.photoURL}}
@@ -253,6 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderLeftWidth: 0,
     borderRightWidth: 0,
+    backgroundColor: '#fff',
   },
   postTitle: {
     fontSize: 16,
@@ -309,7 +310,6 @@ const styles = StyleSheet.create({
     marginTop: 3,
     marginLeft: 10,
     marginRight: 10,
-    // height: 103,
     textOverflow: 'ellipsis',
     textAlign: 'justify',
   },
@@ -317,17 +317,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginRight: 10,
-    marginLeft: 10,
-    marginTop: 3,
-    marginBottom: 3,
+    paddingVertical: 5,
+    paddingHorizontal: 3,
+    backgroundColor: '#fff',
   },
   commentContainer: {
     flexDirection: 'row',
-    marginLeft: 10,
+    paddingLeft: 10,
     alignItems: 'flex-start',
-    marginTop: 5,
-    marginBottom: 5,
+    paddingVertical: 5,
+    backgroundColor: '#fff',
   },
   postComment: {
     fontSize: 14,
@@ -379,5 +378,9 @@ const styles = StyleSheet.create({
     color: '#323232',
     marginLeft: 'auto',
     marginRight: 20,
+  },
+  hairlineWidth: {
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
   },
 });
