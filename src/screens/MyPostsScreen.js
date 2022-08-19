@@ -31,6 +31,11 @@ export default function MyPostsScreen() {
         setPosts(docs);
       });
   }, []);
+
+  const deletePost = postId => {
+    firestore().collection('posts').doc(postId).delete();
+  };
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -75,7 +80,7 @@ export default function MyPostsScreen() {
                 <View style={styles.modalBody}>
                   <TouchableOpacity
                     onPress={() => {
-                      setModalVisible(false);
+                      deletePost(post.id);
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#f00'}}>Delete</Text>
