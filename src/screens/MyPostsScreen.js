@@ -25,7 +25,7 @@ export default function MyPostsScreen() {
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
-          docs.push(doc.data());
+          docs.push({...doc.data(), id: doc.id});
         });
         console.log(docs);
         setPosts(docs);
@@ -37,6 +37,7 @@ export default function MyPostsScreen() {
         {posts.map(post => (
           <Post
             key={uuid.v4()}
+            postId={post.id}
             userId={post.userId}
             userProfileImage={
               'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
@@ -49,6 +50,7 @@ export default function MyPostsScreen() {
             bookmarkStatus={post.bookmark}
             createdAt={post.createdAt}
             modalVisible={setModalVisible}
+            usersList={post.usersList}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}
@@ -65,32 +67,39 @@ export default function MyPostsScreen() {
               style={styles.modalContainer}
               onPressOut={() => setModalVisible(false)}>
               <View style={styles.modalContent}>
-                <TouchableOpacity
-                  style={{width: 24, height: 24}}
-                  onPress={() => {
-                    setModalVisible(false);
-                  }}>
-                  <Ionicons name="ios-close" size={24} color="black" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                  }}>
-                  <View style={styles.modalButton}>
-                    <Ionicons name="trash" size={24} color="black" />
-                    <Text style={{fontSize: 20, color: '#f00'}}>Delete</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setModalVisible(false);
-                  }}>
-                  <View style={styles.modalButton}>
-                    <Ionicons name="ios-share" size={24} color="black" />
-                    <Text style={{fontSize: 20, color: '#0357e8'}}>Edit</Text>
-                  </View>
-                </TouchableOpacity>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalHeaderText}>Please Confirm</Text>
+                  <Text style={styles.modalText}>Are you sure?</Text>
+                </View>
+                <View style={styles.hairlineWidth} />
+                <View style={styles.modalBody}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                    }}>
+                    <View style={styles.modalButton}>
+                      <Text style={{fontSize: 16, color: '#f00'}}>Delete</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.hairlineVertical} />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                    }}>
+                    <View style={styles.modalButton}>
+                      <Text style={{fontSize: 16, color: '#666'}}>Cancel</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.hairlineVertical} />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible(false);
+                    }}>
+                    <View style={styles.modalButton}>
+                      <Text style={{fontSize: 16, color: '#0357e8'}}>Edit</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               </View>
             </TouchableOpacity>
           </Modal>
@@ -107,33 +116,57 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    width: '100%',
-    height: '20%',
-    padding: 10,
+    borderRadius: 12,
+    width: '70%',
+    height: '15%',
+    // padding: 10,
   },
   modalText: {
-    fontSize: 20,
-    color: 'white',
+    fontSize: 14,
+    color: '#000',
     textAlign: 'center',
   },
   modalButton: {
-    backgroundColor: '#aaa',
-    flexDirection: 'row',
-    width: '80%',
     height: 40,
+    paddingHorizontal: 15,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
     marginBottom: 10,
     marginLeft: 'auto',
     marginRight: 'auto',
+  },
+  modalHeader: {
+    marginTop: 10,
+    height: '55%',
+    width: '100%',
+  },
+  modalHeaderText: {
+    fontSize: 20,
+    textAlign: 'center',
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  modalBody: {
+    height: '35%',
+    // width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  hairlineWidth: {
+    width: '100%',
+    height: 2,
+    backgroundColor: '#ccc',
+  },
+  hairlineVertical: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#ccc',
   },
 });

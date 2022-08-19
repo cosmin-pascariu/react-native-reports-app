@@ -12,7 +12,6 @@ import {
   Platform,
   PermissionsAndroid,
   TouchableOpacity,
-  Pressable,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Textarea from '../components/Textarea';
@@ -115,7 +114,7 @@ export default function AddScreen() {
         // filename = name + Date.now() + '.' + extension;
 
         // setImage(filename);
-        setImages([image]);
+        setImages([...images, image]);
       })
       .catch(err => {
         console.log(err);
@@ -176,16 +175,6 @@ export default function AddScreen() {
       usersList: [],
     };
 
-    // // getUserId;
-
-    // firestore()
-    //   .collection('users')
-    //   .doc(currentUserId)
-    //   .update({
-    //     myPosts: firestore.FieldValue.arrayUnion(post),
-    //     myPosts: currentPostId,
-    //   });
-
     await firestore().collection('posts').add(post);
     Alert.alert('Success', 'Post added successfully');
     setImages([]);
@@ -195,7 +184,9 @@ export default function AddScreen() {
     setMarkers([]);
   };
 
-  const showConsole = () => {};
+  const showConsole = () => {
+    console.log('Images: ', images);
+  };
 
   return (
     <SafeAreaView>
@@ -277,16 +268,11 @@ export default function AddScreen() {
             />
           ))}
         </MapView>
-        <Pressable onPress={submitImages}>
+        <TouchableOpacity onPress={submitImages}>
           <View style={styles.submitButton}>
             <Text style={styles.submitButtonText}>Submit</Text>
           </View>
-        </Pressable>
-        {/* <Button
-          title="Submit"
-          onPress={submitImages}
-          style={styles.submitButton}
-        /> */}
+        </TouchableOpacity>
         <Button
           title="Console"
           onPress={() => showConsole()}
@@ -311,7 +297,6 @@ const styles = StyleSheet.create({
     height: 40,
     marginTop: 10,
     marginBottom: 20,
-    // borderWidth: 1,
     padding: 10,
     marginHorizontal: 2,
     textDecoration: 'none',
@@ -390,7 +375,7 @@ const styles = StyleSheet.create({
   submitButton: {
     width: WIDTH - 30,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 12,
     marginVertical: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -405,7 +390,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   submitButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',

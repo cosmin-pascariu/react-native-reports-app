@@ -24,10 +24,9 @@ export default function SignUpScreen() {
   const [userData, setUserData] = useState({
     email: '',
     password: '',
-    profileImage: '',
+    profileImage:
+      'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
     fullName: 'anonim',
-    myPosts: [],
-    favouritePosts: [],
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -47,8 +46,6 @@ export default function SignUpScreen() {
         email: userData.email,
         password: userData.password,
         profileImage: userData.profileImage,
-        myPosts: userData.myPosts,
-        favouritePosts: userData.favouritePosts,
       })
       .then(() => {
         console.log('Document successfully written!');
