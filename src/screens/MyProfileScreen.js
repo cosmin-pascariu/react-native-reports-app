@@ -8,11 +8,17 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
+  Dimensions,
+  Modal,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
+import ImagePicker from 'react-native-image-crop-picker';
 import firestore from '@react-native-firebase/firestore';
+
+const HEIGHT = Dimensions.get('window').height;
+const WIDTH = Dimensions.get('window').width;
 
 export default function MyProfileScreen() {
   const [userID, setUserID] = useState(null);
@@ -20,6 +26,39 @@ export default function MyProfileScreen() {
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [inputVisibility, setInputVisibility] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const takePhotoFromCamera = () => {
+    ImagePicker.openCamera({
+      width: WIDTH,
+      height: HEIGHT / 2 - 20,
+      cropping: true,
+    })
+      .then(image => {
+        setProfileImage(image);
+        setModalVisible(false);
+        updateProfileImage(image);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  const takeMultiplePhotos = () => {
+    ImagePicker.openPicker({
+      width: WIDTH,
+      height: HEIGHT / 2 - 20,
+    })
+      .then(image => {
+        setProfileImage(image);
+        setModalVisible(false);
+        updateProfileImage(image);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
 
   useEffect(() => {
     const userId = auth().currentUser.uid;
@@ -36,6 +75,19 @@ export default function MyProfileScreen() {
       });
   }, []);
 
+  const updateProfileImage = image => {
+    if (image) {
+      const update = {
+        photoURL: image.path,
+      };
+      console.log('Image path: ' + image.path);
+      auth().currentUser.updateProfile(update);
+      firestore().collection('users').doc(userID).update({
+        profileImage: image.path,
+      });
+    }
+  };
+
   const updateUser = () => {
     console.log('userIDd', userID);
     firestore()
@@ -45,6 +97,7 @@ export default function MyProfileScreen() {
         name: userName,
         email: userEmail,
         password: userPassword,
+        profileImage: profileImage.path,
       })
       .then(() => {
         setInputVisibility(false);
@@ -58,11 +111,16 @@ export default function MyProfileScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.imageContainer}>
         <Image
-          source={require('../assets/camera.png')}
+          source={{uri: auth().currentUser.photoURL}}
           style={styles.profileImage}
         />
         <TouchableOpacity style={styles.editButton}>
-          <Ionicons name="md-create" size={25} color="black" />
+          <Ionicons
+            name="md-create"
+            size={25}
+            color="black"
+            onPress={() => setModalVisible(true)}
+          />
         </TouchableOpacity>
       </View>
       <View style={styles.infoContainer}>
@@ -115,6 +173,36 @@ export default function MyProfileScreen() {
           <Text style={styles.buttonText}>Cancel</Text>
         </Pressable>
       </View>
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalButtonContainer}>
+            <Pressable style={styles.modalButton}>
+              <Text
+                style={styles.buttonText}
+                onPress={() => takePhotoFromCamera()}>
+                Take Photo
+              </Text>
+            </Pressable>
+            <Pressable style={styles.modalButton}>
+              <Text
+                style={styles.buttonText}
+                onPress={() => takeMultiplePhotos()}>
+                Choose Photo
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.modalButtonContainer}>
+            <Pressable style={styles.modalButton}>
+              <Text
+                style={styles.buttonText}
+                onPress={() => setModalVisible(false)}>
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -247,5 +335,43 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  modalButton: {
+    height: 40,
+    width: '45%',
+    marginHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    backgroundColor: '#0356e8',
+    borderRadius: 8,
   },
 });
