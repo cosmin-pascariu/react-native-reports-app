@@ -22,7 +22,7 @@ export default function AppNavigatorScreen({navigation}) {
   useEffect(() => {
     firestore()
       .collection('posts')
-      .where('bookmark', '==', true)
+      .where('usersList', 'array-contains', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
@@ -70,28 +70,27 @@ export default function AppNavigatorScreen({navigation}) {
             <Text style={styles.headerTitle}>{route.name}</Text>
             <Image
               source={{
-                uri:
-                  auth().currentUser.photoURL ||
-                  'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
+                uri: auth().currentUser.photoURL || '',
               }}
               style={styles.headerProfile}
               onPress={() => navigation.openDrawer()}
             />
           </View>
         ),
-        tabBarActiveTintColor: 'blue',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#0356e8',
+        tabBarInactiveTintColor: '#999',
         tabBarBadgeStyle: {backgroundColor: 'red'},
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{width: 0}} />
-      <Tab.Screen name="Add" component={AddScreen} options={{visible: false}} />
+      {/* <Tab.Screen name="Search" component={SearchScreen} options={{width: 0}} /> */}
       <Tab.Screen
         name="Favourites"
         component={FavouritesScreen}
         options={{tabBarBadge: numberOfFav}}
       />
+      <Tab.Screen name="Add" component={AddScreen} options={{visible: false}} />
       <Tab.Screen name="MyPosts" component={MyPostsScreen} />
+      <Tab.Screen name="Profile" component={MyProfileScreen} />
     </Tab.Navigator>
   );
 }

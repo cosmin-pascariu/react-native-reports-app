@@ -1,7 +1,16 @@
-import {StyleSheet, Text, View, ScrollView} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Image,
+  Dimensions,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Post from '../components/Post';
+import NoPostsScreen from './NoPostsScreen';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import uuid from 'react-native-uuid';
 
 export default function FavouritesScreen() {
@@ -10,14 +19,15 @@ export default function FavouritesScreen() {
   useEffect(() => {
     firestore()
       .collection('posts')
-      .where('bookmark', '==', true)
+      .where('usersList', 'array-contains', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
-          docs.push(doc.data());
+          docs.push({...doc.data(), id: doc.id});
+          console.log('doc', doc.id);
         });
-        console.log(docs);
         setPosts(docs);
+        console.log('posts', posts);
       });
   }, []);
 
@@ -26,6 +36,7 @@ export default function FavouritesScreen() {
       <View style={styles.container}>
         {posts.map(post => (
           <Post
+            postId={post.id}
             key={uuid.v4()}
             userId={post.userId}
             userProfileImage={
@@ -38,8 +49,10 @@ export default function FavouritesScreen() {
             description={post.description}
             bookmarkStatus={post.bookmark}
             createdAt={post.createdAt}
+            usersList={post.usersList}
           />
         ))}
+        {posts.length === 0 && <NoPostsScreen />}
       </View>
     </ScrollView>
   );

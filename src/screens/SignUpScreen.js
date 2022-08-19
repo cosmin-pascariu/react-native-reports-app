@@ -24,9 +24,9 @@ export default function SignUpScreen() {
   const [userData, setUserData] = useState({
     email: '',
     password: '',
-    profileImage: '',
+    profileImage:
+      'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
     fullName: 'anonim',
-    posts: [],
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -41,11 +41,11 @@ export default function SignUpScreen() {
     firestore()
       .collection('users')
       .add({
+        uid: auth().currentUser.uid,
         name: userData.fullName,
         email: userData.email,
         password: userData.password,
         profileImage: userData.profileImage,
-        posts: userData.posts,
       })
       .then(() => {
         console.log('Document successfully written!');
