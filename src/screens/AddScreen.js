@@ -30,7 +30,7 @@ const HEIGHT = Dimensions.get('window').height;
 
 Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
 
-export default function AddScreen() {
+export default function AddScreen({route}) {
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
@@ -177,7 +177,7 @@ export default function AddScreen() {
   };
 
   const showConsole = () => {
-    console.log('Images: ', images);
+    console.log('Route', route);
   };
 
   return (

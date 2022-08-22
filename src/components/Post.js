@@ -31,6 +31,7 @@ export default function Post({
   createdAt,
   modalVisible,
   usersList,
+  myPostId,
 }) {
   const route = useRoute();
   usersList === undefined ? (usersList = []) : (usersList = usersList);
@@ -92,6 +93,37 @@ export default function Post({
         });
     }
   };
+  // //delete post
+  // const onDeletePress = () => {
+  //   Alert.alert(
+  //     'Delete Post',
+  //     'Are you sure you want to delete this post?',
+  //     [
+  //       {
+  //         text: 'Cancel',
+  //         onPress: () => {
+  //           console.log('Cancel Pressed');
+  //         },
+  //         style: 'cancel',
+  //       },
+  //       {
+  //         text: 'OK',
+  //         onPress: () => {
+  //           firestore()
+  //             .collection('posts')
+  //             .doc(postId)
+  //             .delete()
+  //             .then(() => {
+  //               deletePost(postId);
+  //             }).catch(error => {
+  //               Alert.alert(error.message);
+  //             });
+  //         },
+  //       },
+  //     ],
+  //     {cancelable: false},
+  //   );
+  // }
 
   //get images from firebase storage
   useEffect(() => {
@@ -144,7 +176,10 @@ export default function Post({
           <Ionicons
             name="ellipsis-vertical-sharp"
             style={styles.settingButtonIcon}
-            onPress={() => modalVisible(true)}
+            onPress={() => {
+              modalVisible(true);
+              myPostId(postId);
+            }}
           />
         )}
       </View>

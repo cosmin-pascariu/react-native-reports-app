@@ -73,6 +73,7 @@ export default function MyProfileScreen() {
           setUserPassword(doc.data().password);
         });
       });
+    updateProfileImage(profileImage);
   }, []);
 
   const updateProfileImage = image => {
@@ -108,102 +109,95 @@ export default function MyProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{uri: auth().currentUser.photoURL}}
-          style={styles.profileImage}
-        />
-        <TouchableOpacity style={styles.editButton}>
-          <Ionicons
-            name="md-create"
-            size={25}
-            color="black"
-            onPress={() => setModalVisible(true)}
+    <ScrollView>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{uri: auth().currentUser.photoURL}}
+            style={styles.profileImage}
           />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>{userName}</Text>
-      </View>
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Insert your name"
-        value={userName}
-        onChangeText={text => setUserName(text)}
-        editable={inputVisibility}
-      />
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Insert your email"
-        value={userEmail}
-        onChangeText={text => setUserEmail(text)}
-        editable={inputVisibility}
-      />
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Insert your password"
-        value={userPassword}
-        onChangeText={text => setUserPassword(text)}
-        editable={inputVisibility}
-        secureTextEntry={true}
-      />
-      <View style={styles.buttonContainer}>
-        {inputVisibility ? (
-          <Pressable style={styles.button}>
-            <Text style={styles.buttonText} onPress={() => updateUser()}>
-              Save
-            </Text>
-          </Pressable>
-        ) : (
-          <Pressable style={styles.button}>
-            <Text
-              style={styles.buttonText}
-              onPress={() => setInputVisibility(true)}>
-              Edit Fields
-            </Text>
-          </Pressable>
-        )}
-        <Pressable
-          style={styles.cancelButton}
-          onPress={() => setInputVisibility(false)}>
-          <Text style={styles.buttonText}>Cancel</Text>
-        </Pressable>
-      </View>
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalButtonContainer}>
-            <Pressable style={styles.modalButton}>
-              <Text
-                style={styles.buttonText}
-                onPress={() => takePhotoFromCamera()}>
-                Take Photo
-              </Text>
-            </Pressable>
-            <Pressable style={styles.modalButton}>
-              <Text
-                style={styles.buttonText}
-                onPress={() => takeMultiplePhotos()}>
-                Choose Photo
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.modalButtonContainer}>
-            <Pressable style={styles.modalButton}>
-              <Text
-                style={styles.buttonText}
-                onPress={() => setModalVisible(false)}>
-                Cancel
-              </Text>
-            </Pressable>
-          </View>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => setModalVisible(true)}>
+            <Ionicons name="md-create" size={25} color="black" />
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </SafeAreaView>
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>{userName}</Text>
+        </View>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Insert your name"
+          value={userName}
+          onChangeText={text => setUserName(text)}
+          editable={inputVisibility}
+        />
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Insert your email"
+          value={userEmail}
+          onChangeText={text => setUserEmail(text)}
+          editable={inputVisibility}
+        />
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Insert your password"
+          value={userPassword}
+          onChangeText={text => setUserPassword(text)}
+          editable={inputVisibility}
+          secureTextEntry={true}
+        />
+        <View style={styles.buttonContainer}>
+          {inputVisibility ? (
+            <>
+              <Pressable style={styles.button} onPress={() => updateUser()}>
+                <Text style={styles.buttonText}>Save</Text>
+              </Pressable>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => setInputVisibility(false)}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </Pressable>
+            </>
+          ) : (
+            <View style={styles.buttonContainer}>
+              <Pressable
+                style={[styles.button, {width: '100%'}]}
+                onPress={() => setInputVisibility(true)}>
+                <Text style={styles.buttonText}>Edit Fields</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+        <Modal visible={modalVisible} animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalButtonContainer}>
+              <Pressable
+                style={styles.modalButton}
+                onPress={() => takePhotoFromCamera()}>
+                <Text style={styles.buttonText}>Take Photo</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalButton}
+                onPress={() => takeMultiplePhotos()}>
+                <Text style={styles.buttonText}>Choose Photo</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.modalButtonContainer}>
+              <Pressable
+                style={styles.modalButton}
+                onPress={() => setModalVisible(false)}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </ScrollView>
   );
 }
 

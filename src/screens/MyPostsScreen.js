@@ -5,6 +5,7 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Post from '../components/Post';
@@ -13,10 +14,15 @@ import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import auth from '@react-native-firebase/auth';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [postID, setPostID] = useState(null);
+  const [myPostId, setMyPostId] = useState(null);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     firestore()
@@ -32,9 +38,26 @@ export default function MyPostsScreen() {
       });
   }, []);
 
-  const deletePost = postId => {
-    firestore().collection('posts').doc(postId).delete();
+  //delete post
+  const deletePostHandler = () => {
+    firestore()
+      .collection('posts')
+      .doc(myPostId)
+      .delete()
+      .then(() => {
+        setModalVisible(false);
+        setMyPostId(null);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        setMyPostId(null);
+        setModalVisible(false);
+      });
   };
+
+  console.log('mypostID', myPostId);
 
   return (
     <ScrollView>
@@ -56,6 +79,7 @@ export default function MyPostsScreen() {
             createdAt={post.createdAt}
             modalVisible={setModalVisible}
             usersList={post.usersList}
+            myPostId={setMyPostId}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}
@@ -80,7 +104,8 @@ export default function MyPostsScreen() {
                 <View style={styles.modalBody}>
                   <TouchableOpacity
                     onPress={() => {
-                      deletePost(post.id);
+                      deletePostHandler();
+                      Alert.alert('Post deleted');
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#f00'}}>Delete</Text>
@@ -99,6 +124,7 @@ export default function MyPostsScreen() {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
+                      navigation.navigate('Add', {postId: myPostId});
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#0357e8'}}>Edit</Text>
