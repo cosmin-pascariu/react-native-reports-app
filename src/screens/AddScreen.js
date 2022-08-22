@@ -34,6 +34,7 @@ export default function AddScreen({route}) {
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
+  const [postUserName, setPostUserName] = useState('');
 
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
@@ -46,8 +47,7 @@ export default function AddScreen({route}) {
 
   useEffect(() => {
     getMyLocation();
-  }),
-    [];
+  }, []);
 
   function getMyLocation() {
     Geolocation.getCurrentPosition(
@@ -177,7 +177,7 @@ export default function AddScreen({route}) {
   };
 
   const showConsole = () => {
-    console.log('Route', route);
+    route.params.postId ? console.log('Route', route.params.postId) : '';
   };
 
   return (

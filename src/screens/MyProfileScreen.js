@@ -10,6 +10,7 @@ import {
   Pressable,
   Dimensions,
   Modal,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -98,13 +99,24 @@ export default function MyProfileScreen() {
         name: userName,
         email: userEmail,
         password: userPassword,
-        profileImage: profileImage.path,
+        // profileImage: profileImage.path,
       })
       .then(() => {
         setInputVisibility(false);
+        Alert.alert('Success', 'User updated successfully');
       })
       .catch(error => {
         console.error('Error updating document: ', error);
+      });
+    firestore()
+      .collection('posts')
+      .where('userId', '==', auth().currentUser.uid)
+      .onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          firestore().collection('posts').doc(doc.id).update({
+            postUserName: userName,
+          });
+        });
       });
   };
 
@@ -165,7 +177,7 @@ export default function MyProfileScreen() {
           ) : (
             <View style={styles.buttonContainer}>
               <Pressable
-                style={[styles.button, {width: '100%'}]}
+                style={[styles.button, {width: WIDTH - 50}]}
                 onPress={() => setInputVisibility(true)}>
                 <Text style={styles.buttonText}>Edit Fields</Text>
               </Pressable>
@@ -206,6 +218,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
+    marginTop: 20,
   },
   imageContainer: {
     width: 200,
@@ -328,7 +341,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
+    // marginTop: 20,
   },
   modalContainer: {
     flex: 1,
@@ -348,7 +361,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
   },
   modalButton: {
     height: 40,
