@@ -50,6 +50,9 @@ export default function FavouritesScreen() {
             bookmarkStatus={post.bookmark}
             createdAt={post.createdAt}
             usersList={post.usersList}
+            important={post.important}
+            good={post.good}
+            bad={post.bad}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}

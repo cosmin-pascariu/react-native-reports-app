@@ -30,7 +30,7 @@ const HEIGHT = Dimensions.get('window').height;
 
 Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
 
-export default function AddScreen() {
+export default function AddScreen({route}) {
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
@@ -46,8 +46,45 @@ export default function AddScreen() {
 
   useEffect(() => {
     getMyLocation();
-  }),
-    [];
+    if (route?.params?.edit) {
+      autocompleteFields();
+    }
+  }, [route?.params?.edit]);
+
+  const autocompleteFields = () => {
+    if (route?.params?.edit) {
+      firestore()
+        .collection('posts')
+        .doc(route.params.postId)
+        .get()
+        .then(doc => {
+          setTitle(doc.data().title);
+          setLocation(doc.data().location);
+          setDescription(doc.data().description);
+          setImages(doc.data().images);
+          setMarkers([
+            {
+              key: markers.length,
+              coords: {
+                latitude: doc.data().coordinates.latitude,
+                longitude: doc.data().coordinates.longitude,
+              },
+              pinColor: '#f00',
+              title: 'Problem Location',
+              description: 'The problem is here',
+            },
+          ]);
+          console.log(doc.data().coordinates.latitude);
+          console.log(doc.data().coordinates.longitude);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  };
 
   function getMyLocation() {
     Geolocation.getCurrentPosition(
@@ -106,15 +143,8 @@ export default function AddScreen() {
       cropping: true,
     })
       .then(image => {
-        // console.log(image);
-        // const imageUri = Platform.OS === 'ios' ? image.uri : image.path;
-        // let filename = imageUri.substring(imageUri.lastIndexOf('/') + 1);
-        // const extension = filename.split('.').pop();
-        // const name = filename.split('.').slice(0, -1).join('.');
-        // filename = name + Date.now() + '.' + extension;
-
-        // setImage(filename);
         setImages([...images, image]);
+        console.log('Images', images);
       })
       .catch(err => {
         console.log(err);
@@ -168,9 +198,9 @@ export default function AddScreen() {
         longitude: region.longitude,
       },
       description: description,
-      important: 0,
-      good: 0,
-      bad: 0,
+      important: [],
+      good: [],
+      bad: [],
       createdAt: new Date(),
       usersList: [],
     };
@@ -185,7 +215,31 @@ export default function AddScreen() {
   };
 
   const showConsole = () => {
-    console.log('Images: ', images);
+    // if (route === undefined) {
+    //   console.log('Route', route.params.postId);
+    // } else {
+    //   console.log('Route undefined');
+    // }
+  };
+
+  const editPost = async () => {
+    const post = {
+      images: images,
+      title: title,
+      location: location,
+      coordinates: {
+        latitude: region.latitude,
+        longitude: region.longitude,
+      },
+      description: description,
+    };
+    await firestore().collection('posts').doc(route.params.postId).update(post);
+    Alert.alert('Success', 'Post updated successfully');
+    setImages([]);
+    setTitle('');
+    setLocation('');
+    setDescription('');
+    setMarkers([]);
   };
 
   return (
@@ -268,9 +322,12 @@ export default function AddScreen() {
             />
           ))}
         </MapView>
-        <TouchableOpacity onPress={submitImages}>
+        <TouchableOpacity
+          onPress={() => (route?.params?.edit ? editPost() : savedPost())}>
           <View style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Text style={styles.submitButtonText}>
+              {route?.params?.edit ? `Edit` : `Submit`}
+            </Text>
           </View>
         </TouchableOpacity>
         <Button

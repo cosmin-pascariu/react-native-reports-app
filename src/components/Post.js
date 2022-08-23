@@ -31,17 +31,36 @@ export default function Post({
   createdAt,
   modalVisible,
   usersList,
+  important,
+  myPostId,
+  good,
+  bad,
 }) {
   const route = useRoute();
+
+  // initialise the state variables for the post
   usersList === undefined ? (usersList = []) : (usersList = usersList);
+  console.log('usersList', usersList);
   const bookmarkState = usersList.includes(auth().currentUser.uid)
     ? true
     : false;
   const [savedPost, setSavedPost] = useState(bookmarkState);
 
-  const [isImportant, setIsImportant] = useState(false);
-  const [isGood, setIsGood] = useState(false);
-  const [isNotGood, setIsNotGood] = useState(false);
+  important === undefined || important === 0
+    ? (important = [])
+    : (important = important);
+  const importantState = important.includes(auth().currentUser.uid)
+    ? true
+    : false;
+  const [isImportant, setIsImportant] = useState(importantState);
+
+  good === undefined || good === 0 ? (good = []) : (good = good);
+  const goodState = good.includes(auth().currentUser.uid) ? true : false;
+  const [isGood, setIsGood] = useState(goodState);
+
+  bad === undefined || bad === 0 ? (bad = []) : (bad = bad);
+  const badState = bad.includes(auth().currentUser.uid) ? true : false;
+  const [isBad, setIsBad] = useState(badState);
 
   const [comment, setComment] = useState('');
   const [seeMore, setSeemore] = useState(false);
@@ -60,6 +79,99 @@ export default function Post({
     }
   };
 
+  const onPressImportant = () => {
+    setIsImportant(!isImportant);
+    if (important.includes(auth().currentUser.uid)) {
+      important.splice(important.indexOf(auth().currentUser.uid), 1);
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          important: important,
+        })
+        .then(() => {
+          setIsImportant(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          important: [...important, auth().currentUser.uid],
+        })
+        .then(() => {
+          setIsImportant(true);
+        })
+        .catch(error => {
+          Alert.alert(error.message);
+        });
+    }
+  };
+  const onPressGood = () => {
+    setIsGood(!isGood);
+    if (good.includes(auth().currentUser.uid)) {
+      good.splice(good.indexOf(auth().currentUser.uid), 1);
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          good: good,
+        })
+        .then(() => {
+          setIsGood(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          good: [...good, auth().currentUser.uid],
+        })
+        .then(() => {
+          setIsGood(true);
+        })
+        .catch(error => {
+          Alert.alert(error.message);
+        });
+    }
+  };
+  const onPressBad = () => {
+    setIsBad(!isBad);
+    if (bad.includes(auth().currentUser.uid)) {
+      bad.splice(bad.indexOf(auth().currentUser.uid), 1);
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          bad: bad,
+        })
+        .then(() => {
+          setIsBad(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      firestore()
+        .collection('posts')
+        .doc(postId)
+        .update({
+          bad: [...bad, auth().currentUser.uid],
+        })
+        .then(() => {
+          setIsBad(true);
+        })
+        .catch(error => {
+          Alert.alert(error.message);
+        });
+    }
+  };
   const onBookmarkPress = () => {
     setSavedPost(!savedPost);
     console.log('usersList', usersList);
@@ -144,7 +256,10 @@ export default function Post({
           <Ionicons
             name="ellipsis-vertical-sharp"
             style={styles.settingButtonIcon}
-            onPress={() => modalVisible(true)}
+            onPress={() => {
+              modalVisible(true);
+              myPostId(postId);
+            }}
           />
         )}
       </View>
@@ -177,33 +292,21 @@ export default function Post({
             name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
             style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
             onPress={() => {
-              setIsImportant(!isImportant);
-              if (isImportant === false) {
-                setIsNotGood(false);
-                setIsGood(false);
-              }
+              onPressImportant();
             }}
           />
           <Ionicons
             name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
             style={{color: isGood ? 'green' : '#888', fontSize: 25}}
             onPress={() => {
-              setIsGood(!isGood);
-              if (isGood === false) {
-                setIsImportant(false);
-                setIsNotGood(false);
-              }
+              onPressGood();
             }}
           />
           <Ionicons
-            name={isNotGood ? 'close-circle' : 'close-circle-outline'}
-            style={{color: isNotGood ? 'red' : '#888', fontSize: 25}}
+            name={isBad ? 'close-circle' : 'close-circle-outline'}
+            style={{color: isBad ? 'red' : '#888', fontSize: 25}}
             onPress={() => {
-              setIsNotGood(!isNotGood);
-              if (isNotGood === false) {
-                setIsImportant(false);
-                setIsGood(false);
-              }
+              onPressBad();
             }}
           />
         </View>

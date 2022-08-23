@@ -5,6 +5,7 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Post from '../components/Post';
@@ -13,10 +14,15 @@ import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import auth from '@react-native-firebase/auth';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [postID, setPostID] = useState(null);
+  const [myPostId, setMyPostId] = useState(null);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     firestore()
@@ -31,6 +37,28 @@ export default function MyPostsScreen() {
         setPosts(docs);
       });
   }, []);
+
+  //delete post
+  const deletePostHandler = () => {
+    firestore()
+      .collection('posts')
+      .doc(myPostId)
+      .delete()
+      .then(() => {
+        setModalVisible(false);
+        setMyPostId(null);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => {
+        setMyPostId(null);
+        setModalVisible(false);
+      });
+  };
+
+  console.log('mypostID', myPostId);
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -43,7 +71,7 @@ export default function MyPostsScreen() {
               'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
             }
             userProfileName={post.postUserName}
-            location="Bucharest, Romania"
+            location={post.location}
             postImages={post.images}
             title={post.title}
             description={post.description}
@@ -51,6 +79,10 @@ export default function MyPostsScreen() {
             createdAt={post.createdAt}
             modalVisible={setModalVisible}
             usersList={post.usersList}
+            myPostId={setMyPostId}
+            important={post.important}
+            good={post.good}
+            bad={post.bad}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}
@@ -75,7 +107,8 @@ export default function MyPostsScreen() {
                 <View style={styles.modalBody}>
                   <TouchableOpacity
                     onPress={() => {
-                      setModalVisible(false);
+                      deletePostHandler();
+                      Alert.alert('Post deleted');
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#f00'}}>Delete</Text>
@@ -94,6 +127,10 @@ export default function MyPostsScreen() {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
+                      navigation.navigate('Add', {
+                        postId: myPostId,
+                        edit: true,
+                      });
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#0357e8'}}>Edit</Text>
