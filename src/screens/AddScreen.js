@@ -34,7 +34,6 @@ export default function AddScreen({route}) {
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
-  const [postUserName, setPostUserName] = useState('');
 
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
@@ -47,7 +46,45 @@ export default function AddScreen({route}) {
 
   useEffect(() => {
     getMyLocation();
-  }, []);
+    if (route?.params?.edit) {
+      autocompleteFields();
+    }
+  }, [route?.params?.edit]);
+
+  const autocompleteFields = () => {
+    if (route?.params?.edit) {
+      firestore()
+        .collection('posts')
+        .doc(route.params.postId)
+        .get()
+        .then(doc => {
+          setTitle(doc.data().title);
+          setLocation(doc.data().location);
+          setDescription(doc.data().description);
+          setImages(doc.data().images);
+          setMarkers([
+            {
+              key: markers.length,
+              coords: {
+                latitude: doc.data().coordinates.latitude,
+                longitude: doc.data().coordinates.longitude,
+              },
+              pinColor: '#f00',
+              title: 'Problem Location',
+              description: 'The problem is here',
+            },
+          ]);
+          console.log(doc.data().coordinates.latitude);
+          console.log(doc.data().coordinates.longitude);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  };
 
   function getMyLocation() {
     Geolocation.getCurrentPosition(
@@ -107,6 +144,7 @@ export default function AddScreen({route}) {
     })
       .then(image => {
         setImages([...images, image]);
+        console.log('Images', images);
       })
       .catch(err => {
         console.log(err);
@@ -160,9 +198,9 @@ export default function AddScreen({route}) {
         longitude: region.longitude,
       },
       description: description,
-      important: 0,
-      good: 0,
-      bad: 0,
+      important: [],
+      good: [],
+      bad: [],
       createdAt: new Date(),
       usersList: [],
     };
@@ -177,7 +215,31 @@ export default function AddScreen({route}) {
   };
 
   const showConsole = () => {
-    route.params.postId ? console.log('Route', route.params.postId) : '';
+    // if (route === undefined) {
+    //   console.log('Route', route.params.postId);
+    // } else {
+    //   console.log('Route undefined');
+    // }
+  };
+
+  const editPost = async () => {
+    const post = {
+      images: images,
+      title: title,
+      location: location,
+      coordinates: {
+        latitude: region.latitude,
+        longitude: region.longitude,
+      },
+      description: description,
+    };
+    await firestore().collection('posts').doc(route.params.postId).update(post);
+    Alert.alert('Success', 'Post updated successfully');
+    setImages([]);
+    setTitle('');
+    setLocation('');
+    setDescription('');
+    setMarkers([]);
   };
 
   return (
@@ -260,9 +322,12 @@ export default function AddScreen({route}) {
             />
           ))}
         </MapView>
-        <TouchableOpacity onPress={submitImages}>
+        <TouchableOpacity
+          onPress={() => (route?.params?.edit ? editPost() : savedPost())}>
           <View style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Text style={styles.submitButtonText}>
+              {route?.params?.edit ? `Edit` : `Submit`}
+            </Text>
           </View>
         </TouchableOpacity>
         <Button

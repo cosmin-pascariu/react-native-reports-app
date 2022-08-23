@@ -108,6 +108,9 @@ export default function MyProfileScreen() {
       .catch(error => {
         console.error('Error updating document: ', error);
       });
+    auth().currentUser.updateProfile({
+      displayName: userName,
+    });
     firestore()
       .collection('posts')
       .where('userId', '==', auth().currentUser.uid)
@@ -128,11 +131,13 @@ export default function MyProfileScreen() {
             source={{uri: auth().currentUser.photoURL}}
             style={styles.profileImage}
           />
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => setModalVisible(true)}>
-            <Ionicons name="md-create" size={25} color="black" />
-          </TouchableOpacity>
+          {inputVisibility && (
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setModalVisible(true)}>
+              <Ionicons name="md-create" size={25} color="black" />
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.infoText}>{userName}</Text>

@@ -71,7 +71,7 @@ export default function MyPostsScreen() {
               'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
             }
             userProfileName={post.postUserName}
-            location="Bucharest, Romania"
+            location={post.location}
             postImages={post.images}
             title={post.title}
             description={post.description}
@@ -80,6 +80,9 @@ export default function MyPostsScreen() {
             modalVisible={setModalVisible}
             usersList={post.usersList}
             myPostId={setMyPostId}
+            important={post.important}
+            good={post.good}
+            bad={post.bad}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}
@@ -124,7 +127,10 @@ export default function MyPostsScreen() {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      navigation.navigate('Add', {postId: myPostId});
+                      navigation.navigate('Add', {
+                        postId: myPostId,
+                        edit: true,
+                      });
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#0357e8'}}>Edit</Text>

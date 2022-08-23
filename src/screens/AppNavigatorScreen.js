@@ -67,7 +67,9 @@ export default function AppNavigatorScreen({navigation}) {
         },
         headerTitle: props => (
           <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>{route.name}</Text>
+            <Text style={styles.headerTitle}>
+              {route?.params?.edit ? 'Edit' : route.name}
+            </Text>
             <Image
               source={{
                 uri: auth().currentUser.photoURL || '',
@@ -82,13 +84,18 @@ export default function AppNavigatorScreen({navigation}) {
         tabBarBadgeStyle: {backgroundColor: 'red'},
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      {/* <Tab.Screen name="Search" component={SearchScreen} options={{width: 0}} /> */}
       <Tab.Screen
         name="Favourites"
         component={FavouritesScreen}
         options={{tabBarBadge: numberOfFav}}
       />
-      <Tab.Screen name="Add" component={AddScreen} options={{visible: false}} />
+      <Tab.Screen
+        name="Add"
+        component={AddScreen}
+        options={({route}) => ({
+          title: route?.params?.edit ? 'Edit' : 'Add',
+        })}
+      />
       <Tab.Screen name="MyPosts" component={MyPostsScreen} />
       <Tab.Screen name="Profile" component={MyProfileScreen} />
     </Tab.Navigator>
