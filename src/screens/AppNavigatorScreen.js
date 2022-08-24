@@ -29,6 +29,7 @@ const Tab = createBottomTabNavigator();
 
 export default function AppNavigatorScreen({navigation}) {
   const [numberOfFav, setNumberOfFav] = useState(null);
+  const [filterState, setFilterState] = useState(false);
 
   useEffect(() => {
     firestore()
@@ -78,13 +79,25 @@ export default function AppNavigatorScreen({navigation}) {
         },
         headerTitle: props => (
           <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>
-              {route?.params?.edit ? 'Edit' : route.name}
-            </Text>
+            {route.name === 'Home' ? (
+              <View style={styles.filterContainer}>
+                <Text style={styles.headerTitle}>Home</Text>
+                <Ionicons
+                  name={filterState ? 'ios-close' : 'ios-options'}
+                  size={24}
+                  color="#323232"
+                  onPress={() => setFilterState(!filterState)}
+                />
+              </View>
+            ) : (
+              <Text style={styles.headerTitle}>
+                {route?.params?.edit ? 'Edit' : route.name}
+              </Text>
+            )}
             <Pressable onPress={() => navigation.toggleDrawer()}>
               <Image
                 source={{
-                  uri: auth().currentUser.photoURL || '',
+                  uri: auth().currentUser.photoURL,
                 }}
                 style={styles.headerProfile}
               />
@@ -106,7 +119,10 @@ export default function AppNavigatorScreen({navigation}) {
         tabBarInactiveTintColor: '#999',
         tabBarBadgeStyle: {backgroundColor: 'red'},
       })}>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen
+        name="Home"
+        children={() => <HomeScreen filterState={filterState} />}
+      />
       <Tab.Screen
         name="Favourites"
         component={FavouritesScreen}
@@ -144,6 +160,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#303030',
     fontWeight: 'bold',
+    marginRight: 10,
   },
   headerProfile: {
     height: 35,
@@ -155,5 +172,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 10,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
 });

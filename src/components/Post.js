@@ -59,20 +59,23 @@ export default function Post({
   };
 
   const onPostPress = () => {
-    setPostComments([
-      ...postComments,
-      {
-        userId: auth().currentUser.uid,
-        comment: comment,
-        commentTimeStamp: new Date().toLocaleString(),
-      },
-    ]);
-    setComment('');
+    if (comment === '') {
+      Alert.alert('Please enter a comment');
+    } else {
+      setPostComments([
+        ...postComments,
+        {
+          userId: auth().currentUser.uid,
+          comment: comment,
+          commentTimeStamp: new Date().toLocaleString(),
+        },
+      ]);
+      setComment('');
+    }
   };
 
   // initialise the state variables for the post
   usersList === undefined ? (usersList = []) : (usersList = usersList);
-  console.log('usersList', usersList);
   const bookmarkState = usersList.includes(auth().currentUser.uid)
     ? true
     : false;
@@ -209,7 +212,6 @@ export default function Post({
   };
   const onBookmarkPress = () => {
     setSavedPost(!savedPost);
-    console.log('usersList', usersList);
     if (usersList.includes(auth().currentUser.uid)) {
       usersList.splice(usersList.indexOf(auth().currentUser.uid), 1);
       firestore()
