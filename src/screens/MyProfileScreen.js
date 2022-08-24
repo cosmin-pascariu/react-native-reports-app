@@ -11,8 +11,10 @@ import {
   Dimensions,
   Modal,
   Alert,
+  PermissionsAndroid,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -30,6 +32,8 @@ export default function MyProfileScreen() {
   const [profileImage, setProfileImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  //request camera permission
+
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
       width: WIDTH,
@@ -37,30 +41,29 @@ export default function MyProfileScreen() {
       cropping: true,
     })
       .then(image => {
-        setProfileImage(image);
+        setProfileImage(image.path);
         setModalVisible(false);
-        updateProfileImage(image);
       })
       .catch(err => {
         console.log(err);
       });
   };
 
-  const takeMultiplePhotos = () => {
+  const takePhotoFromGallery = () => {
     ImagePicker.openPicker({
       width: WIDTH,
       height: HEIGHT / 2 - 20,
     })
       .then(image => {
-        setProfileImage(image);
+        setProfileImage(image.path);
         setModalVisible(false);
-        updateProfileImage(image);
       })
       .catch(err => {
         console.log(err);
       });
   };
 
+  // load data from firebase
   useEffect(() => {
     const userId = auth().currentUser.uid;
     firestore()
@@ -72,24 +75,30 @@ export default function MyProfileScreen() {
           setUserName(doc.data().name);
           setUserEmail(doc.data().email);
           setUserPassword(doc.data().password);
+          setProfileImage(doc.data().profileImage);
         });
       });
-    updateProfileImage(profileImage);
   }, []);
 
-  const updateProfileImage = image => {
-    if (image) {
-      const update = {
-        photoURL: image.path,
-      };
-      console.log('Image path: ' + image.path);
-      auth().currentUser.updateProfile(update);
-      firestore().collection('users').doc(userID).update({
-        profileImage: image.path,
-      });
-    }
-  };
+  // use focus effect
+  // useFocusEffect(() => {
+  //   const userId = auth().currentUser.uid;
+  //   firestore()
+  //     .collection('users')
+  //     .where('uid', '==', userId)
+  //     .onSnapshot(doc => {
+  //       doc.forEach(doc => {
+  //         setUserID(doc.id);
+  //         setUserName(doc.data().name);
+  //         setUserEmail(doc.data().email);
+  //         setUserPassword(doc.data().password);
+  //         setProfileImage(doc.data().profileImage);
+  //       });
+  //     });
+  // }),
+  //   [];
 
+  // update user Data in firebase
   const updateUser = () => {
     console.log('userIDd', userID);
     firestore()
@@ -99,7 +108,7 @@ export default function MyProfileScreen() {
         name: userName,
         email: userEmail,
         password: userPassword,
-        // profileImage: profileImage.path,
+        profileImage: profileImage,
       })
       .then(() => {
         setInputVisibility(false);
@@ -110,6 +119,9 @@ export default function MyProfileScreen() {
       });
     auth().currentUser.updateProfile({
       displayName: userName,
+      photoURL: profileImage,
+      email: userEmail,
+      password: userPassword,
     });
     firestore()
       .collection('posts')
@@ -118,6 +130,7 @@ export default function MyProfileScreen() {
         snapshot.forEach(doc => {
           firestore().collection('posts').doc(doc.id).update({
             postUserName: userName,
+            postUserProfilePicture: profileImage,
           });
         });
       });
@@ -127,10 +140,7 @@ export default function MyProfileScreen() {
     <ScrollView>
       <SafeAreaView style={styles.container}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{uri: auth().currentUser.photoURL}}
-            style={styles.profileImage}
-          />
+          <Image source={{uri: profileImage}} style={styles.profileImage} />
           {inputVisibility && (
             <TouchableOpacity
               style={styles.editButton}
@@ -199,7 +209,7 @@ export default function MyProfileScreen() {
               </Pressable>
               <Pressable
                 style={styles.modalButton}
-                onPress={() => takeMultiplePhotos()}>
+                onPress={() => takePhotoFromGallery()}>
                 <Text style={styles.buttonText}>Choose Photo</Text>
               </Pressable>
             </View>
@@ -230,8 +240,6 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-
     marginLeft: 'auto',
     marginRight: 'auto',
   },
@@ -384,5 +392,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     backgroundColor: '#0356e8',
     borderRadius: 8,
+    marginBottom: 10,
   },
 });

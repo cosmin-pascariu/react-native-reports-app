@@ -14,7 +14,7 @@ import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import auth from '@react-native-firebase/auth';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, CommonActions} from '@react-navigation/native';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
@@ -33,7 +33,6 @@ export default function MyPostsScreen() {
         snapshot.forEach(doc => {
           docs.push({...doc.data(), id: doc.id});
         });
-        console.log(docs);
         setPosts(docs);
       });
   }, []);
@@ -57,7 +56,7 @@ export default function MyPostsScreen() {
       });
   };
 
-  console.log('mypostID', myPostId);
+  // console.log('mypostID', myPostId);
 
   return (
     <ScrollView>
@@ -68,7 +67,7 @@ export default function MyPostsScreen() {
             postId={post.id}
             userId={post.userId}
             userProfileImage={
-              'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
+              post.postUserProfilePicture || auth().currentUser.photoURL
             }
             userProfileName={post.postUserName}
             location={post.location}
@@ -127,10 +126,22 @@ export default function MyPostsScreen() {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      navigation.navigate('Add', {
-                        postId: myPostId,
-                        edit: true,
-                      });
+                      console.log('mypostID', myPostId);
+                      // navigation.navigate('Add', {
+                      //   postId: myPostId,
+                      //   edit: true,
+                      // });
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [
+                            {
+                              name: 'Add',
+                              params: {postId: myPostId, edit: true},
+                            },
+                          ],
+                        }),
+                      );
                     }}>
                     <View style={styles.modalButton}>
                       <Text style={{fontSize: 16, color: '#0357e8'}}>Edit</Text>

@@ -44,9 +44,7 @@ import MyProfileScreen from './screens/MyProfileScreen';
 const RootDrawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
-  // const {signOut} = React.useContext(AuthContext);
   const navigation = useNavigation();
-
   const userSignOut = () => {
     auth()
       .signOut()

@@ -40,7 +40,7 @@ export default function FavouritesScreen() {
             key={uuid.v4()}
             userId={post.userId}
             userProfileImage={
-              'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
+              post.postUserProfilePicture || auth().currentUser.photoURL
             }
             userProfileName={post.postUserName}
             location="Bucharest, Romania"

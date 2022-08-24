@@ -32,7 +32,7 @@ export default function HomeScreen() {
             postId={post.id}
             userId={post.userId}
             userProfileImage={
-              'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
+              post.postUserProfilePicture || auth().currentUser.photoURL
             }
             userProfileName={post.postUserName}
             location={post.location}
@@ -45,6 +45,7 @@ export default function HomeScreen() {
             important={post.important}
             good={post.good}
             bad={post.bad}
+            comments={post.comments}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}

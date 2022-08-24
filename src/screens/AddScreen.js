@@ -167,7 +167,7 @@ export default function AddScreen({route}) {
       });
   };
 
-  const submitImages = async () => {
+  const submitPost = async () => {
     let imagesPath = [];
     const promises = images.map(async image => {
       const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
@@ -203,6 +203,7 @@ export default function AddScreen({route}) {
       bad: [],
       createdAt: new Date(),
       usersList: [],
+      comments: [],
     };
 
     await firestore().collection('posts').add(post);
@@ -214,13 +215,7 @@ export default function AddScreen({route}) {
     setMarkers([]);
   };
 
-  const showConsole = () => {
-    // if (route === undefined) {
-    //   console.log('Route', route.params.postId);
-    // } else {
-    //   console.log('Route undefined');
-    // }
-  };
+  const showConsole = () => {};
 
   const editPost = async () => {
     const post = {
@@ -323,7 +318,7 @@ export default function AddScreen({route}) {
           ))}
         </MapView>
         <TouchableOpacity
-          onPress={() => (route?.params?.edit ? editPost() : savedPost())}>
+          onPress={() => (route?.params?.edit ? editPost() : submitPost())}>
           <View style={styles.submitButton}>
             <Text style={styles.submitButtonText}>
               {route?.params?.edit ? `Edit` : `Submit`}
