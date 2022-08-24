@@ -13,6 +13,7 @@ export default function HomeScreen({filterState}) {
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [searchedItem, setSearchedItem] = useState('');
+  const [searchedPosts, setSearchedPosts] = useState([]);
 
   useEffect(() => {
     firestore()
@@ -28,22 +29,54 @@ export default function HomeScreen({filterState}) {
   }, []);
 
   const filterByPostTitle = () => {
-    if (searchedPost === '') {
-      return allPosts;
-    }
     setPosts(allPosts);
     return posts.filter(post => {
       return post.title.toLowerCase().includes(searchedItem.toLowerCase());
     });
-  };
-  const filterByPostLocation = () => {
-    if (searchedPost === '') {
+    if (searchedItem === '') {
       return allPosts;
     }
+  };
+  const filterByPostLocation = () => {
     setPosts(allPosts);
     return posts.filter(post => {
       return post.location.toLowerCase().includes(searchedItem.toLowerCase());
     });
+    if (searchedItem === '') {
+      return allPosts;
+    }
+  };
+
+  const sortDescByTitle = () => {
+    let sorted = posts.sort((a, b) => {
+      console.log('a,b:', a.title, b.title);
+      return a.title > b.title ? 1 : -1;
+    });
+    return sorted;
+  };
+
+  const sortAscByTitle = () => {
+    let sorted = posts.sort((a, b) => {
+      console.log('a,b:', a.title, b.title);
+      return a.title < b.title ? 1 : -1;
+    });
+    return sorted;
+  };
+
+  const sortDescByTime = () => {
+    let sorted = posts.sort((a, b) => {
+      console.log('a,b:', a.createdAd, b.createdAt);
+      return a.createdAt > b.createdAt ? 1 : -1;
+    });
+    return sorted;
+  };
+
+  const sortAscByTime = () => {
+    let sorted = posts.sort((a, b) => {
+      console.log('a,b:', a.createdAd, b.createdAt);
+      return a.createdAt < b.createdAt ? 1 : -1;
+    });
+    return sorted;
   };
 
   return (
@@ -54,13 +87,13 @@ export default function HomeScreen({filterState}) {
             searchedPost={searchedItem}
             setSearchedPost={setSearchedItem}
             searchButtonPress={() => {
-              setPosts(filterByPostLocation());
+              setSearchedPosts(sortAscByTime());
             }}
           />
         </>
       )}
       <View style={styles.container}>
-        {posts.map(post => (
+        {searchedPosts.map(post => (
           <Post
             key={uuid.v4()}
             postId={post.id}

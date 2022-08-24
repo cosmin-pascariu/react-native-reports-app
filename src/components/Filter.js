@@ -7,12 +7,32 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import RadioGroup from 'react-native-radio-buttons-group';
 
 export default function Filter({
   searchedPost,
   setSearchedPost,
   searchButtonPress,
 }) {
+  const radioButtonsData = [
+    {
+      id: '1', // acts as primary key, should be unique and non-empty string
+      label: 'Title',
+      value: 'option1',
+    },
+    {
+      id: '2',
+      label: 'Location',
+      value: 'option2',
+    },
+  ];
+
+  const [radioButtons, setRadioButtons] = useState(radioButtonsData);
+
+  function onPressRadioButton(radioButtonsArray) {
+    setRadioButtons(radioButtonsArray);
+  }
+
   return (
     <View style={styles.filter}>
       <View style={styles.rowContainer}>
@@ -27,6 +47,22 @@ export default function Filter({
           style={styles.searchButton}>
           <Ionicons name="ios-search" size={20} color="white" />
         </TouchableOpacity>
+      </View>
+      <View style={styles.radioContainer}>
+        <RadioGroup
+          radioButtons={radioButtons}
+          onPress={onPressRadioButton}
+          flexDirection="row"
+          color="#323232"
+          selectedBackgroundColor="#323232"
+          selectedLabelColor="#323232"
+          selectedLabelStyle={{fontSize: 20}}
+          labelStyle={{fontSize: 20}}
+          buttonContainerStyle={{margin: 10}}
+          buttonStyle={{borderWidth: 1, borderColor: '#323232'}}
+          buttonSize={20}
+          buttonOuterSize={20}
+        />
       </View>
     </View>
   );
