@@ -28,12 +28,6 @@ export default function SignInScreen() {
     fullName: 'anonim',
   });
 
-  // const {signIn} = React.useContext(AuthContext);
-
-  // const loginHandle = (email, password) => {
-  //   signIn(email, password);
-  // };
-
   const userSignIn = (email, password) => {
     if (email === '' || password === '') {
       Alert.alert('Please fill all the fields');
@@ -91,7 +85,6 @@ export default function SignInScreen() {
               onPress={() => setPasswordVisibility(!passwordVisibility)}
             />
           </View>
-          <Text style={styles.forgotPass}>Forgot password?</Text>
 
           <Pressable
             style={styles.signInButton}
@@ -154,19 +147,12 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     textDecoration: 'none',
   },
-  forgotPass: {
-    fontSize: 14,
-    color: '#0356e8',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    marginBottom: 50,
-  },
   signInButton: {
     backgroundColor: '#0356e8',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 105,
     marginBottom: 10,
     width: '100%',
     height: 50,

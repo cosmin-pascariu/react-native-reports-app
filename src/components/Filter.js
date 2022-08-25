@@ -13,24 +13,85 @@ export default function Filter({
   searchedPost,
   setSearchedPost,
   searchButtonPress,
+  setRadioButtonValue,
+  setFilterRadioButtonValue,
+  setSortOrder,
+  filterButtonPress,
 }) {
   const radioButtonsData = [
     {
       id: '1', // acts as primary key, should be unique and non-empty string
       label: 'Title',
-      value: 'option1',
+      value: 'title',
     },
     {
       id: '2',
       label: 'Location',
-      value: 'option2',
+      value: 'location',
+    },
+    {
+      id: '3',
+      label: 'Created Date',
+      value: 'createdAt',
+    },
+  ];
+
+  const filterRadioButtonsData = [
+    {
+      id: '1', // acts as primary key, should be unique and non-empty string
+      label: 'Title',
+      value: 'title',
+    },
+    {
+      id: '2',
+      label: 'Location',
+      value: 'location',
+    },
+    {
+      id: '3',
+      label: 'Description',
+      value: 'description',
+    },
+  ];
+
+  const sortOrder = [
+    {
+      id: '1', // acts as primary key, should be unique and non-empty string
+      label: 'Ascending',
+      value: 'ascending',
+    },
+    {
+      id: '2',
+      label: 'Descending',
+      value: 'descending',
     },
   ];
 
   const [radioButtons, setRadioButtons] = useState(radioButtonsData);
+  const [filterRadioButtons, setFilterRadioButtons] = useState(
+    filterRadioButtonsData,
+  );
+  const [sortOrderRadioButtons, setSortOrderRadioButtons] = useState(sortOrder);
 
   function onPressRadioButton(radioButtonsArray) {
     setRadioButtons(radioButtonsArray);
+    radioButtonsArray.forEach(element => {
+      element.selected ? setRadioButtonValue(element.value) : null;
+    });
+  }
+
+  function onPressFilterRadioButton(radioButtonsArray) {
+    setFilterRadioButtons(radioButtonsArray);
+    radioButtonsArray.forEach(element => {
+      element.selected ? setFilterRadioButtonValue(element.value) : null;
+    });
+  }
+
+  function onPressSortOrderRadioButton(radioButtonsArray) {
+    setSortOrderRadioButtons(radioButtonsArray);
+    radioButtonsArray.forEach(element => {
+      element.selected ? setSortOrder(element.value) : null;
+    });
   }
 
   return (
@@ -48,21 +109,37 @@ export default function Filter({
           <Ionicons name="ios-search" size={20} color="white" />
         </TouchableOpacity>
       </View>
-      <View style={styles.radioContainer}>
-        <RadioGroup
-          radioButtons={radioButtons}
-          onPress={onPressRadioButton}
-          flexDirection="row"
-          color="#323232"
-          selectedBackgroundColor="#323232"
-          selectedLabelColor="#323232"
-          selectedLabelStyle={{fontSize: 20}}
-          labelStyle={{fontSize: 20}}
-          buttonContainerStyle={{margin: 10}}
-          buttonStyle={{borderWidth: 1, borderColor: '#323232'}}
-          buttonSize={20}
-          buttonOuterSize={20}
-        />
+      <View style={styles.rowContainer}>
+        <View style={styles.radioContainer}>
+          <Text style={styles.sortTitle}> Sort by: </Text>
+          <RadioGroup
+            radioButtons={radioButtons}
+            onPress={onPressRadioButton}
+            containerStyle={styles.radioGroup}
+          />
+
+          <Text style={styles.sortTitle}> Order: </Text>
+          <RadioGroup
+            radioButtons={sortOrderRadioButtons}
+            onPress={onPressSortOrderRadioButton}
+            containerStyle={styles.radioGroup}
+          />
+        </View>
+        <View style={styles.radioContainer}>
+          <Text style={styles.sortTitle}> Filter by: </Text>
+          <RadioGroup
+            radioButtons={filterRadioButtons}
+            onPress={onPressFilterRadioButton}
+            containerStyle={styles.radioGroup}
+          />
+          <View style={styles.centerContent}>
+            <TouchableOpacity
+              onPress={() => filterButtonPress()}
+              style={styles.sortButton}>
+              <Text style={styles.sortButtonText}>Sort</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -108,7 +185,7 @@ const styles = StyleSheet.create({
   },
   rowContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+
     width: '100%',
   },
   searchButton: {
@@ -126,5 +203,47 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  sortButton: {
+    width: 80,
+    height: 40,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0356e8',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  radioContainer: {
+    width: '50%',
+    alignItems: 'flex-start',
+  },
+  radioGroup: {
+    width: '100%',
+    alignItems: 'flex-start',
+    marginTop: 10,
+  },
+  sortTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  centerContent: {
+    width: '100%',
+    height: 100,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  sortButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });

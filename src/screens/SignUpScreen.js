@@ -17,6 +17,7 @@ import firestore from '@react-native-firebase/firestore';
 
 export default function SignUpScreen() {
   const navigation = useNavigation();
+
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [confirmPasswordVisibility, setConfirmPasswordVisibility] =
     useState(false);
@@ -54,30 +55,47 @@ export default function SignUpScreen() {
         console.error('Error writing document: ', error);
       });
   };
+  const validateEmail = email => {
+    return String(email).match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    );
+  };
+
+  const validatePassword = password => {
+    return String(password).match(
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/,
+    );
+  };
 
   const createUser = (email, password) => {
     if (email === '' || password === '' || confirmPassword === '') {
       Alert.alert('Please fill all the fields');
-    } else if (passwordValidation()) {
+    } else if (!validateEmail(email)) {
+      Alert.alert('Please enter a valid email');
+    } else if (!validatePassword(password)) {
+      Alert.alert(
+        'Password must contain at least 8 characters, one uppercase letter, one lowercase letter and one number',
+      );
+    } else if (!passwordValidation()) {
+      Alert.alert('Passwords do not match');
+    } else {
       auth()
         .createUserWithEmailAndPassword(email, password)
         .then(() => {
-          console.log('User account created & signed in!');
+          Alert.alert('User account created & signed in!');
           addNewUser();
         })
         .catch(error => {
           if (error.code === 'auth/email-already-in-use') {
-            console.log('That email address is already in use!');
+            Alert.alert('That email address is already in use!');
           }
 
           if (error.code === 'auth/invalid-email') {
-            console.log('That email address is invalid!');
+            Alert.alert('That email address is invalid!');
           }
 
           console.error(error);
         });
-    } else {
-      Alert.alert('Passwords do not match');
     }
   };
 
@@ -147,7 +165,6 @@ export default function SignUpScreen() {
           </Pressable>
           <Pressable
             style={styles.signUpButton}
-            // onPress={() => navigation.navigate('SignInScreen')}>
             onPress={() => navigation.goBack()}>
             <Text style={styles.buttonTextBlue}>Sign In</Text>
           </Pressable>
