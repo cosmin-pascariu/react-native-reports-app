@@ -61,10 +61,12 @@ export default function AddScreen({route, navigation}) {
   const [descriptionValidation, setDescriptionValidation] = useState(false);
   const [imagesValidation, setImagesValidation] = useState(false);
   const [locationValidation, setLocationValidation] = useState(false);
+
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [imagesFromStorage, setImagesFromStorage] = useState([]);
 
   const [region, setRegion] = useState(null);
   const [markers, setMarkers] = useState([]);
@@ -73,6 +75,15 @@ export default function AddScreen({route, navigation}) {
   //   title: title,
   //   description: description,
   // };
+  const getImageFromStorage = async receivedImages => {
+    const imagesStorage = [];
+    for (let i = 0; i < receivedImages.length; i++) {
+      const image = await storage().ref(receivedImages[i]).getDownloadURL();
+      imagesStorage.push(image);
+      console.log('image', image);
+    }
+    setImagesFromStorage(imagesStorage);
+  };
 
   useEffect(() => {
     checkIsFocused();
@@ -92,6 +103,8 @@ export default function AddScreen({route, navigation}) {
           setTitle(doc.data().title);
           setLocation(doc.data().location);
           setDescription(doc.data().description);
+          // getImageFromStorage(doc.data().images));
+          // console.log('images', images);
           setImages(doc.data().images);
           setMarkers([
             {
@@ -197,7 +210,7 @@ export default function AddScreen({route, navigation}) {
       });
   };
 
-  const submitPost = async values => {
+  const submitPost = async () => {
     let imagesPath = [];
     const promises = images.map(async image => {
       const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
@@ -221,13 +234,13 @@ export default function AddScreen({route, navigation}) {
       postUserName: auth().currentUser.displayName,
       postUserProfilePicture: auth().currentUser.photoURL,
       images: imagesPath,
-      title: values.title,
+      title: title,
       location: location,
       coordinates: {
         latitude: region.latitude,
         longitude: region.longitude,
       },
-      description: values.description,
+      description: description,
       important: [],
       good: [],
       bad: [],
@@ -245,196 +258,188 @@ export default function AddScreen({route, navigation}) {
     setMarkers([]);
   };
 
-  const editPost = async values => {
-    const post = {
-      images: images,
-      title: values.title,
-      location: values.location,
+  const editPost = async () => {
+    const updatedPost = {
+      // images: images,
+      title: title,
+      location: location,
       coordinates: {
         latitude: region.latitude,
         longitude: region.longitude,
       },
-      description: values.description,
+      description: description,
     };
-    await firestore().collection('posts').doc(route.params.postId).update(post);
+    await firestore()
+      .collection('posts')
+      .doc(route?.params?.postId)
+      .update(updatedPost);
     Alert.alert('Success', 'Post updated successfully');
-    setImages([]);
-    setTitle('');
-    setLocation('');
-    setDescription('');
-    setMarkers([]);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'Home'}, {name: 'Add'}],
+      }),
+    );
   };
 
-  // const validationSchema = yup.object().shape({
-  //   title: yup
-  //     .string()
-  //     .min(6, 'Title must be at least 6 characters')
-  //     .required('Title is required'),
-  //   description: yup
-  //     .string()
-  //     .min(150, 'Description must be at least 150 characters')
-  //     .required('Description is required'),
-  //   // images: yup.array().min(1, 'At least one image is required'),
-  //   // location: yup.string().required('Location is required'),
-  // });
+  const checkData = () => {
+    if (!title) {
+      setTitleValidation(true);
+    } else if (!description) {
+      setTitleValidation(false);
+      setDescriptionValidation(true);
+    } else if (images.length < 1) {
+      setDescriptionValidation(false);
+      setImagesValidation(true);
+    } else if (!location) {
+      setImagesValidation(false);
+      setLocationValidation(true);
+    } else {
+      setLocationValidation(false);
+    }
+  };
+
+  function submitData() {
+    if (title && description && images.length > 0 && location) {
+      if (route?.params?.edit) {
+        return editPost();
+      } else {
+        return submitPost();
+      }
+    }
+    checkData();
+  }
 
   return (
     <SafeAreaView>
       <ScrollView style={styles.container}>
-        <Formik
-          onSubmit={values => {
-            if (title === '') {
-              setTitleValidation(true);
-            } else if (description === '') {
-              setDescriptionValidation(true);
-            } else if (images.length < 1) {
-              setImagesValidation(true);
-            } else if (location.length < 1) {
-              setLocationValidation(true);
-            } else {
-              if (route?.params?.edit) {
-                editPost(values);
-                navigation.navigate('Add', {edit: false});
-              } else {
-                submitPost(values);
-              }
-              setTitleValidation(false);
-              setDescriptionValidation(false);
-              setImagesValidation(false);
-              setLocationValidation(false);
-            }
-          }}>
-          {({
-            values,
-            errors,
-            touched,
-            handleChange,
-            handleBlur,
-            handleSubmit,
-          }) => {
-            // const {title, description} = values;
-
-            return (
-              <>
-                <View style={styles.rowLabel}>
-                  <Text style={styles.label}>Title</Text>
-                  {titleValidation && (
-                    <Text style={styles.errorMessage}>Title is required</Text>
-                  )}
-                </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Insert title"
-                  value={title}
-                  onChangeText={text => setTitle(text)}
-                />
-                <View style={styles.rowLabel}>
-                  <Text style={styles.label}>Description</Text>
-                  {descriptionValidation && (
-                    <Text style={styles.errorMessage}>
-                      Description is required
-                    </Text>
-                  )}
-                </View>
-                <Textarea
-                  textareaValue={description}
-                  setTextareaValue={setDescription}
-                />
-                <View style={styles.rowLabel}>
-                  <Text style={styles.label}>Media</Text>
-                  {imagesValidation && (
-                    <Text style={styles.errorMessage}>
-                      At least on image is required
-                    </Text>
-                  )}
-                </View>
-                <View style={styles.mediaButtons}>
-                  <TouchableOpacity onPress={takePhotoFromCamera}>
-                    <View style={styles.customImgButton}>
-                      <Image
-                        source={require('../assets/camera.png')}
-                        style={styles.customImgBackground}
-                      />
-                    </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={takeMultiplePhotos}>
-                    <View style={styles.customImgButton}>
-                      <Image
-                        source={require('../assets/gallery.png')}
-                        style={styles.customImgBackground}
-                      />
-                    </View>
-                  </TouchableOpacity>
-                </View>
-                {images.length > 0 && (
-                  <View style={styles.loadedImages}>
-                    {images.map((image, index) => (
-                      <Image
-                        key={index}
-                        source={{uri: image.path}}
-                        style={styles.loadedImage}
-                      />
-                    ))}
-                  </View>
-                )}
-                <View style={styles.rowLabel}>
-                  <Text style={styles.label}>Location</Text>
-                  {locationValidation && (
-                    <Text style={styles.errorMessage}>
-                      Location is required
-                    </Text>
-                  )}
-                </View>
-                <MapView
-                  onMapReady={() => {
-                    Platform.OS !== 'ios'
-                      ? PermissionsAndroid.request(
-                          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                        ).then(granted => {
-                          console.log('Granted:', granted);
-                        })
-                      : navigation.navigate('HomeScreen');
-                  }}
-                  style={styles.map}
-                  region={region}
-                  zoomEnabled={true}
-                  showsUserLocation={true}
-                  locationEnabled={true}
-                  showsMyLocationButton={true}
-                  showsCompass={true}
-                  showsScale={true}
-                  showsBuildings={true}
-                  showsIndoors={true}
-                  showsIndoorLevelPicker={true}
-                  showsPointsOfInterest={true}
-                  onPress={e => newMarker(e)}>
-                  {markers.map(marker => (
-                    <Marker
-                      key={marker.key}
-                      coordinate={marker.coords}
-                      pinColor={marker.pinColor}
-                      title={marker.title}
-                      description={marker.description}
-                    />
-                  ))}
-                </MapView>
-                <TouchableOpacity onPress={handleSubmit}>
-                  <View style={styles.submitButton}>
-                    <Text style={styles.submitButtonText}>
-                      {route?.params?.edit ? `Edit` : `Submit`}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </>
-            );
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Title</Text>
+          {titleValidation && (
+            <Text style={styles.errorMessage}>Title is required</Text>
+          )}
+        </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Insert title"
+          value={title}
+          onChangeText={text => setTitle(text)}
+        />
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Description</Text>
+          {descriptionValidation && (
+            <Text style={styles.errorMessage}>Description is required</Text>
+          )}
+        </View>
+        <Textarea
+          textareaValue={description}
+          setTextareaValue={setDescription}
+        />
+        <View style={styles.rowLabel}>
+          <Text
+            style={styles.label}
+            onPress={() => {
+              getImageFromStorage(images);
+              console.log('images:', images);
+            }}>
+            Media
+          </Text>
+          {imagesValidation && (
+            <Text style={styles.errorMessage}>
+              At least on image is required
+            </Text>
+          )}
+        </View>
+        <View style={styles.mediaButtons}>
+          <TouchableOpacity onPress={takePhotoFromCamera}>
+            <View style={styles.customImgButton}>
+              <Image
+                source={require('../assets/camera.png')}
+                style={styles.customImgBackground}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={takeMultiplePhotos}>
+            <View style={styles.customImgButton}>
+              <Image
+                source={require('../assets/gallery.png')}
+                style={styles.customImgBackground}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+        {images.length > 0 && (
+          <View style={styles.loadedImages}>
+            {imagesFromStorage
+              ? imagesFromStorage.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{uri: image}}
+                    style={styles.loadedImage}
+                  />
+                ))
+              : images.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{uri: image.path}}
+                    style={styles.loadedImage}
+                  />
+                ))}
+          </View>
+        )}
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Location</Text>
+          {locationValidation && (
+            <Text style={styles.errorMessage}>Location is required</Text>
+          )}
+        </View>
+        <MapView
+          onMapReady={() => {
+            Platform.OS !== 'ios'
+              ? PermissionsAndroid.request(
+                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                ).then(granted => {
+                  console.log('Granted:', granted);
+                })
+              : navigation.navigate('HomeScreen');
           }}
-        </Formik>
+          style={styles.map}
+          region={region}
+          zoomEnabled={true}
+          showsUserLocation={true}
+          locationEnabled={true}
+          showsMyLocationButton={true}
+          showsCompass={true}
+          showsScale={true}
+          showsBuildings={true}
+          showsIndoors={true}
+          showsIndoorLevelPicker={true}
+          showsPointsOfInterest={true}
+          onPress={e => newMarker(e)}>
+          {markers.map(marker => (
+            <Marker
+              key={marker.key}
+              coordinate={marker.coords}
+              pinColor={marker.pinColor}
+              title={marker.title}
+              description={marker.description}
+            />
+          ))}
+        </MapView>
+        <TouchableOpacity onPress={() => submitData()}>
+          <View style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>
+              {route?.params?.edit ? `Edit` : `Submit`}
+            </Text>
+          </View>
+        </TouchableOpacity>
         {route?.params?.edit && !isFocused && (
           <Modal visible={modalVisibility} transparent={true}>
             <View style={styles.modalContainer}>
               <View style={styles.modal}>
                 <Text style={styles.modalTitle}>
-                  Your changes are going to be losted!
+                  Are you sure you want to leave? Your changes will not be
+                  saved.
                 </Text>
                 <View style={styles.rowLabel}>
                   <Pressable
@@ -443,7 +448,7 @@ export default function AddScreen({route, navigation}) {
                       setModalVisibility(false);
                       navigation.navigate('Add', {edit: true});
                     }}>
-                    <Text>Cancel</Text>
+                    <Text style={{color: 'white'}}>Cancel</Text>
                   </Pressable>
                   <Pressable
                     style={styles.modalButton}
@@ -456,7 +461,7 @@ export default function AddScreen({route, navigation}) {
                         }),
                       );
                     }}>
-                    <Text>OK</Text>
+                    <Text style={{color: 'white'}}>OK</Text>
                   </Pressable>
                 </View>
               </View>
@@ -596,8 +601,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modal: {
-    width: WIDTH - 30,
-    height: HEIGHT / 4 - 20,
+    width: WIDTH,
+    height: HEIGHT,
     backgroundColor: '#fff',
     borderRadius: 12,
     justifyContent: 'center',
@@ -612,22 +617,23 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#303030',
     textDecoration: 'none',
     fontWeight: 'bold',
+    marginHorizontal: 10,
   },
   modalButton: {
     fontSize: 16,
-    height: 40,
-    width: 60,
+    height: 50,
+    width: 80,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0356e8',
-    color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',
+    marginTop: 20,
     marginLeft: 'auto',
     marginRight: 'auto',
   },

@@ -53,6 +53,7 @@ export default function FavouritesScreen() {
             important={post.important}
             good={post.good}
             bad={post.bad}
+            comments={post.comments}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}

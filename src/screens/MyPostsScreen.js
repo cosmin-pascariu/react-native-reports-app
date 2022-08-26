@@ -82,6 +82,7 @@ export default function MyPostsScreen() {
             important={post.important}
             good={post.good}
             bad={post.bad}
+            comments={post.comments}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}
