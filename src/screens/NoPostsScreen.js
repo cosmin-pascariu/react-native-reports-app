@@ -8,7 +8,9 @@ export default function NoPostsScreen() {
         source={require('../assets/noData.png')}
         style={styles.noDataImage}
       />
-      <Text style={styles.noDataText}>There are no data to display yet...</Text>
+      <Text style={styles.noDataText}>
+        There is currently no data to display...
+      </Text>
     </View>
   );
 }

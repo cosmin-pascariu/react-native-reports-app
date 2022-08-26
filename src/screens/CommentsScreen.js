@@ -1,6 +1,7 @@
 import {StyleSheet, Text, ScrollView, Button, View} from 'react-native';
 import React from 'react';
 import Comment from '../components/Comment';
+import NoPostsScreen from './NoPostsScreen';
 import uuid from 'react-native-uuid';
 
 export default function CommentsScreen({route}) {
@@ -15,6 +16,7 @@ export default function CommentsScreen({route}) {
             commentTimeStamp={comment.commentTimeStamp}
           />
         ))}
+        {route?.params?.comments.length === 0 && <NoPostsScreen />}
       </View>
     </ScrollView>
   );

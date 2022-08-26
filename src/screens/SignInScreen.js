@@ -38,12 +38,6 @@ export default function SignInScreen() {
       .required('Password is required')
       .min(8, 'Password must be at least 6 characters'),
     fullName: yup.string().required('Full name is required'),
-    // confirmPassword: yup
-    //   .string()
-    //   .required('Confirm password is required')
-    //   .test('passwords-match', 'Passwords must match', function (value) {
-    //     return this.parent.password === value;
-    //   }),
   });
 
   const userSignIn = (email, password) => {

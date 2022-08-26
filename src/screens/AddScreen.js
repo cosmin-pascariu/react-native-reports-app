@@ -10,8 +10,10 @@ import {
   Button,
   Dimensions,
   Platform,
+  Modal,
   PermissionsAndroid,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Textarea from '../components/Textarea';
@@ -23,19 +25,42 @@ import auth from '@react-native-firebase/auth';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
-import {useNavigation} from '@react-navigation/native';
+import {
+  useNavigation,
+  useIsFocused,
+  CommonActions,
+} from '@react-navigation/native';
+import {Formik} from 'formik';
+import * as yup from 'yup';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
 
 Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
 
-export default function AddScreen({route}) {
-  const navigation = useNavigation();
+export default function AddScreen({route, navigation}) {
+  // is focused is used to check if the screen is focused or not
+  const isFocused = useIsFocused();
+  const [modalVisibility, setModalVisibility] = useState(true);
+
+  const checkIsFocused = () => {
+    if (isFocused) {
+      console.log('focused');
+    } else {
+      console.log('not focused');
+      setModalVisibility(true);
+    }
+  };
+
+  // const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
 
   const [images, setImages] = useState([]);
+  const [titleValidation, setTitleValidation] = useState(false);
+  const [descriptionValidation, setDescriptionValidation] = useState(false);
+  const [imagesValidation, setImagesValidation] = useState(false);
+  const [locationValidation, setLocationValidation] = useState(false);
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
@@ -44,12 +69,18 @@ export default function AddScreen({route}) {
   const [region, setRegion] = useState(null);
   const [markers, setMarkers] = useState([]);
 
+  // const postData = {
+  //   title: title,
+  //   description: description,
+  // };
+
   useEffect(() => {
+    checkIsFocused();
     getMyLocation();
     if (route?.params?.edit) {
       autocompleteFields();
     }
-  }, [route?.params?.edit]);
+  }, [route?.params?.edit, isFocused]);
 
   const autocompleteFields = () => {
     if (route?.params?.edit) {
@@ -74,8 +105,6 @@ export default function AddScreen({route}) {
               description: 'The problem is here',
             },
           ]);
-          console.log(doc.data().coordinates.latitude);
-          console.log(doc.data().coordinates.longitude);
         })
         .catch(err => {
           console.log(err);
@@ -132,6 +161,7 @@ export default function AddScreen({route}) {
       .then(json => {
         const address = json.results[0].formatted_address;
         setLocation(address);
+        console.log('address', address);
       })
       .catch(error => console.warn(error));
   }
@@ -167,7 +197,7 @@ export default function AddScreen({route}) {
       });
   };
 
-  const submitPost = async () => {
+  const submitPost = async values => {
     let imagesPath = [];
     const promises = images.map(async image => {
       const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
@@ -191,13 +221,13 @@ export default function AddScreen({route}) {
       postUserName: auth().currentUser.displayName,
       postUserProfilePicture: auth().currentUser.photoURL,
       images: imagesPath,
-      title: title,
+      title: values.title,
       location: location,
       coordinates: {
         latitude: region.latitude,
         longitude: region.longitude,
       },
-      description: description,
+      description: values.description,
       important: [],
       good: [],
       bad: [],
@@ -215,18 +245,16 @@ export default function AddScreen({route}) {
     setMarkers([]);
   };
 
-  const showConsole = () => {};
-
-  const editPost = async () => {
+  const editPost = async values => {
     const post = {
       images: images,
-      title: title,
-      location: location,
+      title: values.title,
+      location: values.location,
       coordinates: {
         latitude: region.latitude,
         longitude: region.longitude,
       },
-      description: description,
+      description: values.description,
     };
     await firestore().collection('posts').doc(route.params.postId).update(post);
     Alert.alert('Success', 'Post updated successfully');
@@ -237,99 +265,204 @@ export default function AddScreen({route}) {
     setMarkers([]);
   };
 
+  // const validationSchema = yup.object().shape({
+  //   title: yup
+  //     .string()
+  //     .min(6, 'Title must be at least 6 characters')
+  //     .required('Title is required'),
+  //   description: yup
+  //     .string()
+  //     .min(150, 'Description must be at least 150 characters')
+  //     .required('Description is required'),
+  //   // images: yup.array().min(1, 'At least one image is required'),
+  //   // location: yup.string().required('Location is required'),
+  // });
+
   return (
     <SafeAreaView>
       <ScrollView style={styles.container}>
-        <Text style={styles.label}>Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Insert title"
-          value={title}
-          onChangeText={text => setTitle(text)}
-        />
-        <Text style={styles.label}>Description</Text>
-        <Textarea
-          textareaValue={description}
-          setTextareaValue={setDescription}
-        />
-        <Text style={styles.label}>Images & Video</Text>
-        <View style={styles.mediaButtons}>
-          <TouchableOpacity onPress={takePhotoFromCamera}>
-            <View style={styles.customImgButton}>
-              {/* <Ionicons name="ios-camera" size={30} color="black" /> */}
-              <Image
-                source={require('../assets/camera.png')}
-                style={styles.customImgBackground}
-              />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={takeMultiplePhotos}>
-            <View style={styles.customImgButton}>
-              <Image
-                source={require('../assets/gallery.png')}
-                style={styles.customImgBackground}
-              />
-            </View>
-          </TouchableOpacity>
-        </View>
-        {images.length > 0 && (
-          <View style={styles.loadedImages}>
-            {images.map((image, index) => (
-              <Image
-                key={index}
-                source={{uri: image.path}}
-                style={styles.loadedImage}
-              />
-            ))}
-          </View>
-        )}
-        <Text style={styles.label}>Location</Text>
-        <MapView
-          onMapReady={() => {
-            Platform.OS !== 'ios'
-              ? PermissionsAndroid.request(
-                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                ).then(granted => {
-                  console.log('Granted:', granted);
-                })
-              : navigation.navigate('HomeScreen');
+        <Formik
+          onSubmit={values => {
+            if (title === '') {
+              setTitleValidation(true);
+            } else if (description === '') {
+              setDescriptionValidation(true);
+            } else if (images.length < 1) {
+              setImagesValidation(true);
+            } else if (location.length < 1) {
+              setLocationValidation(true);
+            } else {
+              if (route?.params?.edit) {
+                editPost(values);
+                navigation.navigate('Add', {edit: false});
+              } else {
+                submitPost(values);
+              }
+              setTitleValidation(false);
+              setDescriptionValidation(false);
+              setImagesValidation(false);
+              setLocationValidation(false);
+            }
+          }}>
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+          }) => {
+            // const {title, description} = values;
+
+            return (
+              <>
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Title</Text>
+                  {titleValidation && (
+                    <Text style={styles.errorMessage}>Title is required</Text>
+                  )}
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Insert title"
+                  value={title}
+                  onChangeText={text => setTitle(text)}
+                />
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Description</Text>
+                  {descriptionValidation && (
+                    <Text style={styles.errorMessage}>
+                      Description is required
+                    </Text>
+                  )}
+                </View>
+                <Textarea
+                  textareaValue={description}
+                  setTextareaValue={setDescription}
+                />
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Media</Text>
+                  {imagesValidation && (
+                    <Text style={styles.errorMessage}>
+                      At least on image is required
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.mediaButtons}>
+                  <TouchableOpacity onPress={takePhotoFromCamera}>
+                    <View style={styles.customImgButton}>
+                      <Image
+                        source={require('../assets/camera.png')}
+                        style={styles.customImgBackground}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={takeMultiplePhotos}>
+                    <View style={styles.customImgButton}>
+                      <Image
+                        source={require('../assets/gallery.png')}
+                        style={styles.customImgBackground}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+                {images.length > 0 && (
+                  <View style={styles.loadedImages}>
+                    {images.map((image, index) => (
+                      <Image
+                        key={index}
+                        source={{uri: image.path}}
+                        style={styles.loadedImage}
+                      />
+                    ))}
+                  </View>
+                )}
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Location</Text>
+                  {locationValidation && (
+                    <Text style={styles.errorMessage}>
+                      Location is required
+                    </Text>
+                  )}
+                </View>
+                <MapView
+                  onMapReady={() => {
+                    Platform.OS !== 'ios'
+                      ? PermissionsAndroid.request(
+                          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                        ).then(granted => {
+                          console.log('Granted:', granted);
+                        })
+                      : navigation.navigate('HomeScreen');
+                  }}
+                  style={styles.map}
+                  region={region}
+                  zoomEnabled={true}
+                  showsUserLocation={true}
+                  locationEnabled={true}
+                  showsMyLocationButton={true}
+                  showsCompass={true}
+                  showsScale={true}
+                  showsBuildings={true}
+                  showsIndoors={true}
+                  showsIndoorLevelPicker={true}
+                  showsPointsOfInterest={true}
+                  onPress={e => newMarker(e)}>
+                  {markers.map(marker => (
+                    <Marker
+                      key={marker.key}
+                      coordinate={marker.coords}
+                      pinColor={marker.pinColor}
+                      title={marker.title}
+                      description={marker.description}
+                    />
+                  ))}
+                </MapView>
+                <TouchableOpacity onPress={handleSubmit}>
+                  <View style={styles.submitButton}>
+                    <Text style={styles.submitButtonText}>
+                      {route?.params?.edit ? `Edit` : `Submit`}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </>
+            );
           }}
-          style={styles.map}
-          region={region}
-          zoomEnabled={true}
-          showsUserLocation={true}
-          locationEnabled={true}
-          showsMyLocationButton={true}
-          showsCompass={true}
-          showsScale={true}
-          showsBuildings={true}
-          showsIndoors={true}
-          showsIndoorLevelPicker={true}
-          showsPointsOfInterest={true}
-          onPress={e => newMarker(e)}>
-          {markers.map(marker => (
-            <Marker
-              key={marker.key}
-              coordinate={marker.coords}
-              pinColor={marker.pinColor}
-              title={marker.title}
-              description={marker.description}
-            />
-          ))}
-        </MapView>
-        <TouchableOpacity
-          onPress={() => (route?.params?.edit ? editPost() : submitPost())}>
-          <View style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>
-              {route?.params?.edit ? `Edit` : `Submit`}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <Button
-          title="Console"
-          onPress={() => showConsole()}
-          style={styles.submitButton}
-        />
+        </Formik>
+        {route?.params?.edit && !isFocused && (
+          <Modal visible={modalVisibility} transparent={true}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modal}>
+                <Text style={styles.modalTitle}>
+                  Your changes are going to be losted!
+                </Text>
+                <View style={styles.rowLabel}>
+                  <Pressable
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setModalVisibility(false);
+                      navigation.navigate('Add', {edit: true});
+                    }}>
+                    <Text>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setModalVisibility(false);
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{name: 'Home'}, {name: 'Add'}],
+                        }),
+                      );
+                    }}>
+                    <Text>OK</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -446,5 +579,56 @@ const styles = StyleSheet.create({
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',
+  },
+  errorMessage: {
+    color: '#ff0000',
+  },
+  rowLabel: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modal: {
+    width: WIDTH - 30,
+    height: HEIGHT / 4 - 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 16,
+    color: '#303030',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+  },
+  modalButton: {
+    fontSize: 16,
+    height: 40,
+    width: 60,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0356e8',
+    color: '#fff',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
 });
