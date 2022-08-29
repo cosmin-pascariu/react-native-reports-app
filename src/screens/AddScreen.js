@@ -10,8 +10,10 @@ import {
   Button,
   Dimensions,
   Platform,
+  Modal,
   PermissionsAndroid,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Textarea from '../components/Textarea';
@@ -23,33 +25,73 @@ import auth from '@react-native-firebase/auth';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
-import {useNavigation} from '@react-navigation/native';
+import {
+  useNavigation,
+  useIsFocused,
+  CommonActions,
+} from '@react-navigation/native';
+import {Formik} from 'formik';
+import * as yup from 'yup';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
 
 Geocoder.init('AIzaSyAj_B3UnNBrTZE9i_wHuVgnXZ74HQgExHQ');
 
-export default function AddScreen({route}) {
-  const navigation = useNavigation();
+export default function AddScreen({route, navigation}) {
+  // is focused is used to check if the screen is focused or not
+  const isFocused = useIsFocused();
+  const [modalVisibility, setModalVisibility] = useState(true);
+
+  const checkIsFocused = () => {
+    if (isFocused) {
+      console.log('focused');
+    } else {
+      console.log('not focused');
+      setModalVisibility(true);
+    }
+  };
+
+  // const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
 
   const [images, setImages] = useState([]);
+  const [titleValidation, setTitleValidation] = useState(false);
+  const [descriptionValidation, setDescriptionValidation] = useState(false);
+  const [imagesValidation, setImagesValidation] = useState(false);
+  const [locationValidation, setLocationValidation] = useState(false);
+
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [imagesFromStorage, setImagesFromStorage] = useState([]);
 
   const [region, setRegion] = useState(null);
   const [markers, setMarkers] = useState([]);
 
+  // const postData = {
+  //   title: title,
+  //   description: description,
+  // };
+  const getImageFromStorage = async receivedImages => {
+    const imagesStorage = [];
+    for (let i = 0; i < receivedImages.length; i++) {
+      const image = await storage().ref(receivedImages[i]).getDownloadURL();
+      imagesStorage.push(image);
+      console.log('image', image);
+    }
+    setImagesFromStorage(imagesStorage);
+  };
+
   useEffect(() => {
+    checkIsFocused();
     getMyLocation();
     if (route?.params?.edit) {
       autocompleteFields();
     }
-  }, [route?.params?.edit]);
+  }, [route?.params?.edit, isFocused]);
 
   const autocompleteFields = () => {
     if (route?.params?.edit) {
@@ -61,6 +103,8 @@ export default function AddScreen({route}) {
           setTitle(doc.data().title);
           setLocation(doc.data().location);
           setDescription(doc.data().description);
+          // getImageFromStorage(doc.data().images));
+          // console.log('images', images);
           setImages(doc.data().images);
           setMarkers([
             {
@@ -74,8 +118,6 @@ export default function AddScreen({route}) {
               description: 'The problem is here',
             },
           ]);
-          console.log(doc.data().coordinates.latitude);
-          console.log(doc.data().coordinates.longitude);
         })
         .catch(err => {
           console.log(err);
@@ -132,6 +174,7 @@ export default function AddScreen({route}) {
       .then(json => {
         const address = json.results[0].formatted_address;
         setLocation(address);
+        console.log('address', address);
       })
       .catch(error => console.warn(error));
   }
@@ -167,7 +210,7 @@ export default function AddScreen({route}) {
       });
   };
 
-  const submitImages = async () => {
+  const submitPost = async () => {
     let imagesPath = [];
     const promises = images.map(async image => {
       const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
@@ -203,6 +246,7 @@ export default function AddScreen({route}) {
       bad: [],
       createdAt: new Date(),
       usersList: [],
+      comments: [],
     };
 
     await firestore().collection('posts').add(post);
@@ -214,17 +258,9 @@ export default function AddScreen({route}) {
     setMarkers([]);
   };
 
-  const showConsole = () => {
-    // if (route === undefined) {
-    //   console.log('Route', route.params.postId);
-    // } else {
-    //   console.log('Route undefined');
-    // }
-  };
-
   const editPost = async () => {
-    const post = {
-      images: images,
+    const updatedPost = {
+      // images: images,
       title: title,
       location: location,
       coordinates: {
@@ -233,35 +269,90 @@ export default function AddScreen({route}) {
       },
       description: description,
     };
-    await firestore().collection('posts').doc(route.params.postId).update(post);
+    await firestore()
+      .collection('posts')
+      .doc(route?.params?.postId)
+      .update(updatedPost);
     Alert.alert('Success', 'Post updated successfully');
-    setImages([]);
-    setTitle('');
-    setLocation('');
-    setDescription('');
-    setMarkers([]);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'Home'}, {name: 'Add'}],
+      }),
+    );
   };
+
+  const checkData = () => {
+    if (!title) {
+      setTitleValidation(true);
+    } else if (!description) {
+      setTitleValidation(false);
+      setDescriptionValidation(true);
+    } else if (images.length < 1) {
+      setDescriptionValidation(false);
+      setImagesValidation(true);
+    } else if (!location) {
+      setImagesValidation(false);
+      setLocationValidation(true);
+    } else {
+      setLocationValidation(false);
+    }
+  };
+
+  function submitData() {
+    if (title && description && images.length > 0 && location) {
+      if (route?.params?.edit) {
+        return editPost();
+      } else {
+        return submitPost();
+      }
+    }
+    checkData();
+  }
 
   return (
     <SafeAreaView>
       <ScrollView style={styles.container}>
-        <Text style={styles.label}>Title</Text>
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Title</Text>
+          {titleValidation && (
+            <Text style={styles.errorMessage}>Title is required</Text>
+          )}
+        </View>
         <TextInput
           style={styles.input}
           placeholder="Insert title"
           value={title}
           onChangeText={text => setTitle(text)}
         />
-        <Text style={styles.label}>Description</Text>
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Description</Text>
+          {descriptionValidation && (
+            <Text style={styles.errorMessage}>Description is required</Text>
+          )}
+        </View>
         <Textarea
           textareaValue={description}
           setTextareaValue={setDescription}
         />
-        <Text style={styles.label}>Images & Video</Text>
+        <View style={styles.rowLabel}>
+          <Text
+            style={styles.label}
+            onPress={() => {
+              getImageFromStorage(images);
+              console.log('images:', images);
+            }}>
+            Media
+          </Text>
+          {imagesValidation && (
+            <Text style={styles.errorMessage}>
+              At least on image is required
+            </Text>
+          )}
+        </View>
         <View style={styles.mediaButtons}>
           <TouchableOpacity onPress={takePhotoFromCamera}>
             <View style={styles.customImgButton}>
-              {/* <Ionicons name="ios-camera" size={30} color="black" /> */}
               <Image
                 source={require('../assets/camera.png')}
                 style={styles.customImgBackground}
@@ -279,16 +370,29 @@ export default function AddScreen({route}) {
         </View>
         {images.length > 0 && (
           <View style={styles.loadedImages}>
-            {images.map((image, index) => (
-              <Image
-                key={index}
-                source={{uri: image.path}}
-                style={styles.loadedImage}
-              />
-            ))}
+            {imagesFromStorage
+              ? imagesFromStorage.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{uri: image}}
+                    style={styles.loadedImage}
+                  />
+                ))
+              : images.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{uri: image.path}}
+                    style={styles.loadedImage}
+                  />
+                ))}
           </View>
         )}
-        <Text style={styles.label}>Location</Text>
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Location</Text>
+          {locationValidation && (
+            <Text style={styles.errorMessage}>Location is required</Text>
+          )}
+        </View>
         <MapView
           onMapReady={() => {
             Platform.OS !== 'ios'
@@ -322,19 +426,48 @@ export default function AddScreen({route}) {
             />
           ))}
         </MapView>
-        <TouchableOpacity
-          onPress={() => (route?.params?.edit ? editPost() : savedPost())}>
+        <TouchableOpacity onPress={() => submitData()}>
           <View style={styles.submitButton}>
             <Text style={styles.submitButtonText}>
               {route?.params?.edit ? `Edit` : `Submit`}
             </Text>
           </View>
         </TouchableOpacity>
-        <Button
-          title="Console"
-          onPress={() => showConsole()}
-          style={styles.submitButton}
-        />
+        {route?.params?.edit && !isFocused && (
+          <Modal visible={modalVisibility} transparent={true}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modal}>
+                <Text style={styles.modalTitle}>
+                  Are you sure you want to leave? Your changes will not be
+                  saved.
+                </Text>
+                <View style={styles.rowLabel}>
+                  <Pressable
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setModalVisibility(false);
+                      navigation.navigate('Add', {edit: true});
+                    }}>
+                    <Text style={{color: 'white'}}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setModalVisibility(false);
+                      navigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{name: 'Home'}, {name: 'Add'}],
+                        }),
+                      );
+                    }}>
+                    <Text style={{color: 'white'}}>OK</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -451,5 +584,57 @@ const styles = StyleSheet.create({
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',
+  },
+  errorMessage: {
+    color: '#ff0000',
+  },
+  rowLabel: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modal: {
+    width: WIDTH,
+    height: HEIGHT,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    color: '#303030',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    marginHorizontal: 10,
+  },
+  modalButton: {
+    fontSize: 16,
+    height: 50,
+    width: 80,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0356e8',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
 });

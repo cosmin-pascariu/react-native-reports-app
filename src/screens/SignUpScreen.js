@@ -14,38 +14,52 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import {Formik, useFormik} from 'formik';
+import * as yup from 'yup';
 
 export default function SignUpScreen() {
   const navigation = useNavigation();
+
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [confirmPasswordVisibility, setConfirmPasswordVisibility] =
     useState(false);
 
-  const [userData, setUserData] = useState({
+  const userData = {
     email: '',
     password: '',
+    confirmPassword: '',
     profileImage:
       'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
     fullName: 'anonim',
-  });
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const passwordValidation = () => {
-    if (userData.password !== confirmPassword) {
-      return false;
-    }
-    return true;
   };
 
-  const addNewUser = () => {
+  const validationSchema = yup.object({
+    email: yup
+      .string()
+      .email('Invalid email address')
+      .required('Email is required'),
+    password: yup
+      .string()
+      .required('Password is required')
+      .min(8, 'Password must be at least 6 characters'),
+    fullName: yup.string().required('Full name is required'),
+    confirmPassword: yup
+      .string()
+      .required('Confirm password is required')
+      .test('passwords-match', 'Passwords must match', function (value) {
+        return this.parent.password === value;
+      }),
+  });
+
+  const addNewUser = data => {
     firestore()
       .collection('users')
       .add({
         uid: auth().currentUser.uid,
-        name: userData.fullName,
-        email: userData.email,
-        password: userData.password,
-        profileImage: userData.profileImage,
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        profileImage: data.profileImage,
       })
       .then(() => {
         console.log('Document successfully written!');
@@ -55,29 +69,31 @@ export default function SignUpScreen() {
       });
   };
 
-  const createUser = (email, password) => {
-    if (email === '' || password === '' || confirmPassword === '') {
+  const createUser = data => {
+    if (
+      data.email === '' ||
+      data.password === '' ||
+      data.confirmPassword === ''
+    ) {
       Alert.alert('Please fill all the fields');
-    } else if (passwordValidation()) {
+    } else {
       auth()
-        .createUserWithEmailAndPassword(email, password)
+        .createUserWithEmailAndPassword(data.email, data.password)
         .then(() => {
-          console.log('User account created & signed in!');
-          addNewUser();
+          Alert.alert('User account created & signed in!');
+          addNewUser(data);
         })
         .catch(error => {
           if (error.code === 'auth/email-already-in-use') {
-            console.log('That email address is already in use!');
+            Alert.alert('That email address is already in use!');
           }
 
           if (error.code === 'auth/invalid-email') {
-            console.log('That email address is invalid!');
+            Alert.alert('That email address is invalid!');
           }
 
           console.error(error);
         });
-    } else {
-      Alert.alert('Passwords do not match');
     }
   };
 
@@ -87,71 +103,110 @@ export default function SignUpScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Register Now!</Text>
         </View>
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>E-mail</Text>
-          <View style={styles.row}>
-            <Ionicons name="mail" size={24} color="#323232" />
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Your E-mail"
-              value={userData.email}
-              onChangeText={text => setUserData({...userData, email: text})}
-            />
-          </View>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.row}>
-            <Ionicons name="lock-closed" size={24} color="#323232" />
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Your Password"
-              secureTextEntry={!passwordVisibility}
-              value={userData.password}
-              onChangeText={text => setUserData({...userData, password: text})}
-            />
-            <Ionicons
-              name={passwordVisibility ? 'eye' : 'eye-off'}
-              size={24}
-              color="#323232"
-              onPress={() => setPasswordVisibility(!passwordVisibility)}
-            />
-          </View>
-          <Text style={styles.label}>Confirm Password</Text>
-          <View style={styles.row}>
-            <Ionicons name="lock-closed" size={24} color="#323232" />
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Confirm Your Password"
-              secureTextEntry={!confirmPasswordVisibility}
-              value={confirmPassword}
-              onChangeText={text => setConfirmPassword(text)}
-            />
-            <Ionicons
-              name={confirmPasswordVisibility ? 'eye' : 'eye-off'}
-              size={24}
-              color="#323232"
-              onPress={() =>
-                setConfirmPasswordVisibility(!confirmPasswordVisibility)
-              }
-            />
-          </View>
-          <Text style={styles.forgotPass}>
-            By singing up you agree to our{' '}
-            <Text style={styles.boldText}>Terms of service</Text> and{' '}
-            <Text style={styles.boldText}>Privacy policy</Text>
-          </Text>
+        <Formik
+          initialValues={userData}
+          validationSchema={validationSchema}
+          onSubmit={values => {
+            createUser(values);
+          }}>
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+          }) => {
+            const {email, password, confirmPassword, profileImage, fullName} =
+              values;
 
-          <Pressable
-            style={styles.signInButton}
-            onPress={() => createUser(userData.email, userData.password)}>
-            <Text style={styles.buttonText}>Sign Up</Text>
-          </Pressable>
-          <Pressable
-            style={styles.signUpButton}
-            // onPress={() => navigation.navigate('SignInScreen')}>
-            onPress={() => navigation.goBack()}>
-            <Text style={styles.buttonTextBlue}>Sign In</Text>
-          </Pressable>
-        </View>
+            return (
+              <View style={styles.formContainer}>
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>E-mail</Text>
+                  {touched.email && errors.email && (
+                    <Text style={styles.errorMessage}>{errors.email}</Text>
+                  )}
+                </View>
+                <View style={styles.row}>
+                  <Ionicons name="mail" size={24} color="#323232" />
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Your E-mail"
+                    value={email}
+                    onBlur={handleBlur('email')}
+                    onChangeText={handleChange('email')}
+                  />
+                </View>
+
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Password</Text>
+                  {touched.password && errors.password && (
+                    <Text style={styles.errorMessage}>{errors.password}</Text>
+                  )}
+                </View>
+                <View style={styles.row}>
+                  <Ionicons name="lock-closed" size={24} color="#323232" />
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Your Password"
+                    secureTextEntry={!passwordVisibility}
+                    value={password}
+                    onBlur={handleBlur('password')}
+                    onChangeText={handleChange('password')}
+                  />
+                  <Ionicons
+                    name={passwordVisibility ? 'eye' : 'eye-off'}
+                    size={24}
+                    color="#323232"
+                    onPress={() => setPasswordVisibility(!passwordVisibility)}
+                  />
+                </View>
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Confirm Password</Text>
+                  {touched.confirmPassword && errors.confirmPassword && (
+                    <Text style={styles.errorMessage}>
+                      {errors.confirmPassword}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.row}>
+                  <Ionicons name="lock-closed" size={24} color="#323232" />
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Confirm Your Password"
+                    secureTextEntry={!confirmPasswordVisibility}
+                    value={confirmPassword}
+                    onBlur={handleBlur('confirmPassword')}
+                    onChangeText={handleChange('confirmPassword')}
+                  />
+                  <Ionicons
+                    name={confirmPasswordVisibility ? 'eye' : 'eye-off'}
+                    size={24}
+                    color="#323232"
+                    onPress={() =>
+                      setConfirmPasswordVisibility(!confirmPasswordVisibility)
+                    }
+                  />
+                </View>
+                <Text style={styles.forgotPass}>
+                  By singing up you agree to our{' '}
+                  <Text style={styles.boldText}>Terms of service</Text> and{' '}
+                  <Text style={styles.boldText}>Privacy policy</Text>
+                </Text>
+
+                <Pressable style={styles.signInButton} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Sign Up</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.signUpButton}
+                  onPress={() => navigation.goBack()}>
+                  <Text style={styles.buttonTextBlue}>Sign In</Text>
+                </Pressable>
+              </View>
+            );
+          }}
+        </Formik>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -246,5 +301,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     width: '100%',
     height: 50,
+  },
+  errorMessage: {
+    color: '#ff0000',
+  },
+  rowLabel: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 40,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });

@@ -8,9 +8,11 @@ import {
   Button,
   Alert,
   Dimensions,
+  Pressable,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {useRoute} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
@@ -35,12 +37,45 @@ export default function Post({
   myPostId,
   good,
   bad,
+  comments,
 }) {
   const route = useRoute();
+  const navigation = useNavigation();
+
+  comments === undefined ? (comments = []) : (comments = comments);
+  const [postComments, setPostComments] = useState(comments);
+
+  const [comment, setComment] = useState('');
+  const [seeMore, setSeemore] = useState(false);
+
+  const [imgActive, setImgActive] = useState(0);
+  const [images, setImages] = useState([]);
+
+  const updatePostComments = async () => {
+    const postRef = firestore().collection('posts').doc(postId);
+    await postRef.update({
+      comments: postComments,
+    });
+  };
+
+  const onPostPress = () => {
+    if (comment === '') {
+      Alert.alert('Please enter a comment');
+    } else {
+      setPostComments([
+        ...postComments,
+        {
+          userId: auth().currentUser.uid,
+          comment: comment,
+          commentTimeStamp: new Date().toLocaleString(),
+        },
+      ]);
+      setComment('');
+    }
+  };
 
   // initialise the state variables for the post
   usersList === undefined ? (usersList = []) : (usersList = usersList);
-  console.log('usersList', usersList);
   const bookmarkState = usersList.includes(auth().currentUser.uid)
     ? true
     : false;
@@ -62,12 +97,6 @@ export default function Post({
   const badState = bad.includes(auth().currentUser.uid) ? true : false;
   const [isBad, setIsBad] = useState(badState);
 
-  const [comment, setComment] = useState('');
-  const [seeMore, setSeemore] = useState(false);
-
-  const [imgActive, setImgActive] = useState(0);
-  const [images, setImages] = useState([]);
-
   const onchange = nativeEvent => {
     if (nativeEvent) {
       const slide = Math.ceil(
@@ -80,7 +109,10 @@ export default function Post({
   };
 
   const onPressImportant = () => {
-    setIsImportant(!isImportant);
+    console.log('isImportant', isImportant);
+    console.log('isGood', isGood);
+    console.log('isBad', isBad);
+
     if (important.includes(auth().currentUser.uid)) {
       important.splice(important.indexOf(auth().currentUser.uid), 1);
       firestore()
@@ -90,7 +122,8 @@ export default function Post({
           important: important,
         })
         .then(() => {
-          setIsImportant(false);
+          // setIsImportant(false);
+          setIsImportant(!isImportant);
         })
         .catch(error => {
           console.log(error);
@@ -103,7 +136,8 @@ export default function Post({
           important: [...important, auth().currentUser.uid],
         })
         .then(() => {
-          setIsImportant(true);
+          // setIsImportant(true);
+          setIsImportant(!isImportant);
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -111,7 +145,9 @@ export default function Post({
     }
   };
   const onPressGood = () => {
-    setIsGood(!isGood);
+    console.log('isImportant', isImportant);
+    console.log('isGood', isGood);
+    console.log('isBad', isBad);
     if (good.includes(auth().currentUser.uid)) {
       good.splice(good.indexOf(auth().currentUser.uid), 1);
       firestore()
@@ -121,7 +157,8 @@ export default function Post({
           good: good,
         })
         .then(() => {
-          setIsGood(false);
+          // setIsGood(false);
+          setIsGood(!isGood);
         })
         .catch(error => {
           console.log(error);
@@ -134,7 +171,8 @@ export default function Post({
           good: [...good, auth().currentUser.uid],
         })
         .then(() => {
-          setIsGood(true);
+          // setIsGood(true);
+          setIsGood(!isGood);
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -174,7 +212,6 @@ export default function Post({
   };
   const onBookmarkPress = () => {
     setSavedPost(!savedPost);
-    console.log('usersList', usersList);
     if (usersList.includes(auth().currentUser.uid)) {
       usersList.splice(usersList.indexOf(auth().currentUser.uid), 1);
       firestore()
@@ -324,7 +361,16 @@ export default function Post({
       <Text style={styles.seeMore} onPress={() => setSeemore(!seeMore)}>
         {seeMore ? 'see less' : 'see more'}
       </Text>
-      <Text style={styles.seePostTime}>{getPostedTime()}</Text>
+      <View style={styles.bottomRow}>
+        <Text style={styles.seePostTime}>{getPostedTime()}</Text>
+        <Pressable
+          onPress={() => {
+            updatePostComments();
+            navigation.navigate('Comments', {comments: postComments});
+          }}>
+          <Text style={styles.seeComments}>{postComments.length} comments</Text>
+        </Pressable>
+      </View>
       <View style={styles.hairlineWidth} />
       <View style={styles.commentContainer}>
         <Image
@@ -340,7 +386,10 @@ export default function Post({
         />
         <Text
           style={styles.postCommentButton}
-          onPress={() => Alert.alert(comment)}>
+          onPress={() => {
+            onPostPress();
+            updatePostComments();
+          }}>
           Post
         </Text>
       </View>
@@ -485,5 +534,16 @@ const styles = StyleSheet.create({
   hairlineWidth: {
     borderBottomWidth: 1,
     borderColor: '#ddd',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  seeComments: {
+    fontSize: 12,
+    color: '#aaa',
+    marginLeft: 10,
+    marginRight: 10,
   },
 });

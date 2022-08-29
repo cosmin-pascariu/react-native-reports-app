@@ -14,25 +14,31 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-
-// import {AuthContext} from '../components/context';
+import {Formik, useFormik} from 'formik';
+import * as yup from 'yup';
 
 export default function SignInScreen() {
   const navigation = useNavigation();
   const [passwordVisibility, setPasswordVisibility] = useState(false);
 
-  const [data, setData] = useState({
+  const userData = {
     email: '',
     password: '',
     profileImage: '',
     fullName: 'anonim',
+  };
+
+  const validationSchema = yup.object({
+    email: yup
+      .string()
+      .email('Invalid email address')
+      .required('Email is required'),
+    password: yup
+      .string()
+      .required('Password is required')
+      .min(8, 'Password must be at least 6 characters'),
+    fullName: yup.string().required('Full name is required'),
   });
-
-  // const {signIn} = React.useContext(AuthContext);
-
-  // const loginHandle = (email, password) => {
-  //   signIn(email, password);
-  // };
 
   const userSignIn = (email, password) => {
     if (email === '' || password === '') {
@@ -63,47 +69,76 @@ export default function SignInScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Welcome!</Text>
         </View>
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>E-mail</Text>
-          <View style={styles.row}>
-            <Ionicons name="mail" size={24} color="#323232" />
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Your E-mail"
-              value={data.email}
-              onChangeText={text => setData({...data, email: text})}
-            />
-          </View>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.row}>
-            <Ionicons name="lock-closed" size={24} color="#323232" />
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Your Password"
-              secureTextEntry={!passwordVisibility}
-              value={data.password}
-              onChangeText={text => setData({...data, password: text})}
-            />
-            <Ionicons
-              name={passwordVisibility ? 'eye' : 'eye-off'}
-              size={24}
-              color="#323232"
-              onPress={() => setPasswordVisibility(!passwordVisibility)}
-            />
-          </View>
-          <Text style={styles.forgotPass}>Forgot password?</Text>
+        <Formik
+          initialValues={userData}
+          validationSchema={validationSchema}
+          onSubmit={values => {
+            userSignIn(values.email, values.password);
+          }}>
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+          }) => {
+            const {email, password, fullName} = values;
 
-          <Pressable
-            style={styles.signInButton}
-            onPress={() => userSignIn(data.email, data.password)}>
-            <Text style={styles.buttonText}>Sign In</Text>
-          </Pressable>
-          <Pressable
-            style={styles.signUpButton}
-            onPress={() => navigation.navigate('SignUpScreen')}>
-            <Text style={styles.buttonTextBlue}>Sign Up</Text>
-          </Pressable>
-        </View>
+            return (
+              <View style={styles.formContainer}>
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>E-mail</Text>
+                  {touched.email && errors.email && (
+                    <Text style={styles.errorMessage}>{errors.email}</Text>
+                  )}
+                </View>
+                <View style={styles.row}>
+                  <Ionicons name="mail" size={24} color="#323232" />
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Your E-mail"
+                    value={email}
+                    onBlur={handleBlur('email')}
+                    onChangeText={handleChange('email')}
+                  />
+                </View>
+
+                <View style={styles.rowLabel}>
+                  <Text style={styles.label}>Password</Text>
+                  {touched.password && errors.password && (
+                    <Text style={styles.errorMessage}>{errors.password}</Text>
+                  )}
+                </View>
+                <View style={styles.row}>
+                  <Ionicons name="lock-closed" size={24} color="#323232" />
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Your Password"
+                    secureTextEntry={!passwordVisibility}
+                    value={password}
+                    onBlur={handleBlur('password')}
+                    onChangeText={handleChange('password')}
+                  />
+                  <Ionicons
+                    name={passwordVisibility ? 'eye' : 'eye-off'}
+                    size={24}
+                    color="#323232"
+                    onPress={() => setPasswordVisibility(!passwordVisibility)}
+                  />
+                </View>
+                <Pressable style={styles.signInButton} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Sign In</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.signUpButton}
+                  onPress={() => navigation.navigate('SignUpScreen')}>
+                  <Text style={styles.buttonTextBlue}>Sign Up</Text>
+                </Pressable>
+              </View>
+            );
+          }}
+        </Formik>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -154,19 +189,12 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     textDecoration: 'none',
   },
-  forgotPass: {
-    fontSize: 14,
-    color: '#0356e8',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    marginBottom: 50,
-  },
   signInButton: {
     backgroundColor: '#0356e8',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 105,
     marginBottom: 10,
     width: '100%',
     height: 50,
@@ -194,19 +222,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
   },
-  googleButton: {
+  errorMessage: {
+    color: '#ff0000',
+  },
+  rowLabel: {
     flexDirection: 'row',
-    backgroundColor: '#0356e8',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 5,
-    marginBottom: 5,
     width: '100%',
     height: 50,
-  },
-  googleLogo: {
-    position: 'absolute',
-    left: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });

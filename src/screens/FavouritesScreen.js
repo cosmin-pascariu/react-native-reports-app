@@ -40,10 +40,10 @@ export default function FavouritesScreen() {
             key={uuid.v4()}
             userId={post.userId}
             userProfileImage={
-              'https://ps.w.org/cbxuseronline/assets/icon-256x256.png?rev=2284897'
+              post.postUserProfilePicture || auth().currentUser.photoURL
             }
             userProfileName={post.postUserName}
-            location="Bucharest, Romania"
+            location={post.location}
             postImages={post.images}
             title={post.title}
             description={post.description}
@@ -53,6 +53,7 @@ export default function FavouritesScreen() {
             important={post.important}
             good={post.good}
             bad={post.bad}
+            comments={post.comments}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}
