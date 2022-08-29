@@ -32,8 +32,6 @@ export default function MyProfileScreen() {
   const [profileImage, setProfileImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  //request camera permission
-
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
       width: WIDTH,
@@ -79,24 +77,6 @@ export default function MyProfileScreen() {
         });
       });
   }, []);
-
-  // use focus effect
-  // useFocusEffect(() => {
-  //   const userId = auth().currentUser.uid;
-  //   firestore()
-  //     .collection('users')
-  //     .where('uid', '==', userId)
-  //     .onSnapshot(doc => {
-  //       doc.forEach(doc => {
-  //         setUserID(doc.id);
-  //         setUserName(doc.data().name);
-  //         setUserEmail(doc.data().email);
-  //         setUserPassword(doc.data().password);
-  //         setProfileImage(doc.data().profileImage);
-  //       });
-  //     });
-  // }),
-  //   [];
 
   // update user Data in firebase
   const updateUser = () => {

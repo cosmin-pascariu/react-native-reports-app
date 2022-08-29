@@ -94,7 +94,7 @@ export default function AppNavigatorScreen({navigation}) {
                 {route?.params?.edit ? 'Edit' : route.name}
               </Text>
             )}
-            <Pressable onPress={() => navigation.toggleDrawer()}>
+            <Pressable onPress={() => navigation.navigate('Profile')}>
               <Image
                 source={{
                   uri: auth().currentUser.photoURL,

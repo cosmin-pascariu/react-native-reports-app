@@ -10,7 +10,7 @@ const CustomTextInput = props => {
   );
 };
 
-const Textarea = ({textareaValue, setTextareaValue}) => {
+const Textarea = ({textareaValue, onchangetext, onblur}) => {
   return (
     <View>
       <CustomTextInput
@@ -21,7 +21,8 @@ const Textarea = ({textareaValue, setTextareaValue}) => {
         maxLength={300}
         editable
         value={textareaValue}
-        onChangeText={text => setTextareaValue(text)}
+        onChangeText={onchangetext}
+        onBlur={onblur}
       />
     </View>
   );

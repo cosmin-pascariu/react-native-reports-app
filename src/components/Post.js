@@ -109,10 +109,8 @@ export default function Post({
   };
 
   const onPressImportant = () => {
-    console.log('isImportant', isImportant);
-    console.log('isGood', isGood);
-    console.log('isBad', isBad);
-
+    good.splice(good.indexOf(auth().currentUser.uid), 1);
+    bad.splice(bad.indexOf(auth().currentUser.uid), 1);
     if (important.includes(auth().currentUser.uid)) {
       important.splice(important.indexOf(auth().currentUser.uid), 1);
       firestore()
@@ -122,7 +120,6 @@ export default function Post({
           important: important,
         })
         .then(() => {
-          // setIsImportant(false);
           setIsImportant(!isImportant);
         })
         .catch(error => {
@@ -134,10 +131,13 @@ export default function Post({
         .doc(postId)
         .update({
           important: [...important, auth().currentUser.uid],
+          good: good,
+          bad: bad,
         })
         .then(() => {
-          // setIsImportant(true);
           setIsImportant(!isImportant);
+          // !good && onPressGood();
+          // !bad && onPressBad();
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -145,9 +145,8 @@ export default function Post({
     }
   };
   const onPressGood = () => {
-    console.log('isImportant', isImportant);
-    console.log('isGood', isGood);
-    console.log('isBad', isBad);
+    important.splice(important.indexOf(auth().currentUser.uid), 1);
+    bad.splice(bad.indexOf(auth().currentUser.uid), 1);
     if (good.includes(auth().currentUser.uid)) {
       good.splice(good.indexOf(auth().currentUser.uid), 1);
       firestore()
@@ -157,7 +156,6 @@ export default function Post({
           good: good,
         })
         .then(() => {
-          // setIsGood(false);
           setIsGood(!isGood);
         })
         .catch(error => {
@@ -168,11 +166,14 @@ export default function Post({
         .collection('posts')
         .doc(postId)
         .update({
+          important: important,
           good: [...good, auth().currentUser.uid],
+          bad: bad,
         })
         .then(() => {
-          // setIsGood(true);
           setIsGood(!isGood);
+          // !important && onPressImportant();
+          // !bad && onPressBad();
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -180,7 +181,8 @@ export default function Post({
     }
   };
   const onPressBad = () => {
-    setIsBad(!isBad);
+    important.splice(important.indexOf(auth().currentUser.uid), 1);
+    good.splice(good.indexOf(auth().currentUser.uid), 1);
     if (bad.includes(auth().currentUser.uid)) {
       bad.splice(bad.indexOf(auth().currentUser.uid), 1);
       firestore()
@@ -190,7 +192,7 @@ export default function Post({
           bad: bad,
         })
         .then(() => {
-          setIsBad(false);
+          setIsBad(!isBad);
         })
         .catch(error => {
           console.log(error);
@@ -200,10 +202,14 @@ export default function Post({
         .collection('posts')
         .doc(postId)
         .update({
+          important: important,
+          good: good,
           bad: [...bad, auth().currentUser.uid],
         })
         .then(() => {
-          setIsBad(true);
+          setIsBad(!isBad);
+          // !important && onPressImportant();
+          // !good && onPressGood();
         })
         .catch(error => {
           Alert.alert(error.message);

@@ -125,8 +125,11 @@ function App() {
               // useLegacyImplementation
               screenOptions={{
                 headerShown: false,
+                swipeEdgeWidth: 0,
+                drawerLockMode: 'locked-open',
               }}
-              drawerContent={props => <CustomDrawerContent {...props} />}>
+              // drawerContent={props => <CustomDrawerContent {...props} />}
+            >
               <RootDrawer.Screen
                 name="AppNavigatorScreen"
                 component={AppNavigatorScreen}
