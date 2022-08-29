@@ -100,6 +100,8 @@ export default function Filter({
         <TextInput
           style={styles.filterInput}
           placeholder="Search"
+          color="#323232"
+          placeholderTextColor="#999"
           value={searchedPost}
           onChangeText={text => setSearchedPost(text)}
         />
@@ -113,6 +115,7 @@ export default function Filter({
         <View style={styles.radioContainer}>
           <Text style={styles.sortTitle}> Sort by: </Text>
           <RadioGroup
+            color="#323232"
             radioButtons={radioButtons}
             onPress={onPressRadioButton}
             containerStyle={styles.radioGroup}
@@ -129,6 +132,7 @@ export default function Filter({
           <Text style={styles.sortTitle}> Filter by: </Text>
           <RadioGroup
             radioButtons={filterRadioButtons}
+            radioButtonStyle={{borderWidth: 1, color: '#323232'}}
             onPress={onPressFilterRadioButton}
             containerStyle={styles.radioGroup}
           />
@@ -151,6 +155,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
     width: '100%',
+    color: '#323232',
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 10,
     backgroundColor: '#fff',
@@ -166,6 +171,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#323232',
   },
   filterInput: {
     width: '87%',
@@ -185,7 +191,7 @@ const styles = StyleSheet.create({
   },
   rowContainer: {
     flexDirection: 'row',
-
+    color: '#323232',
     width: '100%',
   },
   searchButton: {
@@ -229,11 +235,17 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'flex-start',
     marginTop: 10,
+    color: '#323232',
+    radioButtonStyle: {
+      borderWidth: 1,
+      color: '#323232',
+    },
   },
   sortTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
+    color: '#323232',
   },
   centerContent: {
     width: '100%',
@@ -244,6 +256,6 @@ const styles = StyleSheet.create({
   sortButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#fff',
   },
 });

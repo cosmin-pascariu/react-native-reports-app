@@ -43,64 +43,6 @@ import MyProfileScreen from './screens/MyProfileScreen';
 
 const RootDrawer = createDrawerNavigator();
 
-function CustomDrawerContent(props) {
-  const navigation = useNavigation();
-  const userSignOut = () => {
-    auth()
-      .signOut()
-      .then(() => console.log('User signed out!'));
-  };
-
-  return (
-    <View style={styles.customContainer}>
-      <DrawerContentScrollView {...props}>
-        <DrawerItemList {...props} />
-        <Drawer.Section style={styles.drawerSection}>
-          <DrawerItem
-            label="My profile"
-            icon={({color, size}) => (
-              <Ionicons name="person-circle" color={color} size={size} />
-            )}
-          />
-        </Drawer.Section>
-        <Drawer.Section style={styles.drawerSection}>
-          <DrawerItem
-            label="Another action"
-            icon={({color, size}) => (
-              <Ionicons name="exit" color={color} size={size} />
-            )}
-          />
-        </Drawer.Section>
-        <Drawer.Section style={styles.drawerSection}>
-          <DrawerItem
-            label="Another action"
-            icon={({color, size}) => (
-              <Ionicons name="exit" color={color} size={size} />
-            )}
-          />
-        </Drawer.Section>
-        <Drawer.Section style={styles.drawerSection}>
-          <DrawerItem
-            label="Another action"
-            icon={({color, size}) => (
-              <Ionicons name="exit" color={color} size={size} />
-            )}
-          />
-        </Drawer.Section>
-        <Drawer.Section style={styles.drawerSection}>
-          <DrawerItem
-            label="Sign out"
-            onPress={() => userSignOut()}
-            icon={({color, size}) => (
-              <Ionicons name="exit" color={color} size={size} />
-            )}
-          />
-        </Drawer.Section>
-      </DrawerContentScrollView>
-    </View>
-  );
-}
-
 function App() {
   const [initialising, setInitialising] = useState(true);
   const [user, setUser] = useState();
@@ -122,14 +64,11 @@ function App() {
         <NavigationContainer>
           {user ? (
             <RootDrawer.Navigator
-              // useLegacyImplementation
               screenOptions={{
                 headerShown: false,
                 swipeEdgeWidth: 0,
                 drawerLockMode: 'locked-open',
-              }}
-              // drawerContent={props => <CustomDrawerContent {...props} />}
-            >
+              }}>
               <RootDrawer.Screen
                 name="AppNavigatorScreen"
                 component={AppNavigatorScreen}

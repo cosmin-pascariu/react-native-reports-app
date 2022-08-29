@@ -136,8 +136,6 @@ export default function Post({
         })
         .then(() => {
           setIsImportant(!isImportant);
-          // !good && onPressGood();
-          // !bad && onPressBad();
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -172,8 +170,6 @@ export default function Post({
         })
         .then(() => {
           setIsGood(!isGood);
-          // !important && onPressImportant();
-          // !bad && onPressBad();
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -208,8 +204,6 @@ export default function Post({
         })
         .then(() => {
           setIsBad(!isBad);
-          // !important && onPressImportant();
-          // !good && onPressGood();
         })
         .catch(error => {
           Alert.alert(error.message);
@@ -387,6 +381,8 @@ export default function Post({
           style={styles.postComment}
           placeholder="Add a comment..."
           value={comment}
+          placeholderTextColor="#999"
+          color="#323232"
           onChangeText={text => setComment(text)}
           multiline={true}
         />
@@ -517,18 +513,18 @@ const styles = StyleSheet.create({
   },
   imageDot: {
     position: 'absolute',
-    top: HEIGHT / 2 + 25,
+    top: HEIGHT / 2 + 50,
     flexDirection: 'row',
     alignSelf: 'center',
   },
   dotActive: {
     margin: 3,
-    color: 'black',
+    color: '#0356e8',
     fontSize: 20,
   },
   dot: {
     margin: 3,
-    color: '#888',
+    color: '#aaa',
     fontSize: 20,
   },
   settingButtonIcon: {

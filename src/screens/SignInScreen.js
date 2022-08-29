@@ -98,6 +98,7 @@ export default function SignInScreen() {
                   <TextInput
                     style={styles.emailInput}
                     placeholder="Your E-mail"
+                    placeholderTextColor="#999"
                     value={email}
                     onBlur={handleBlur('email')}
                     onChangeText={handleChange('email')}
@@ -115,6 +116,7 @@ export default function SignInScreen() {
                   <TextInput
                     style={styles.emailInput}
                     placeholder="Your Password"
+                    placeholderTextColor="#999"
                     secureTextEntry={!passwordVisibility}
                     value={password}
                     onBlur={handleBlur('password')}
@@ -182,6 +184,8 @@ const styles = StyleSheet.create({
   emailInput: {
     flex: 1,
     height: 30,
+    color: '#323232',
+    placeholderTextColor: '#323232',
     paddingLeft: 10,
     borderBottomWidth: 1,
     borderColor: '#999',

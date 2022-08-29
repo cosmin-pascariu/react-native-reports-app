@@ -31,6 +31,7 @@ export default function MyProfileScreen() {
   const [inputVisibility, setInputVisibility] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [signOutButton, setSignOutButton] = useState(false);
 
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
@@ -116,6 +117,14 @@ export default function MyProfileScreen() {
       });
   };
 
+  const signOut = () => {
+    auth()
+      .signOut()
+      .then(() => {
+        console.log('User signed out!');
+      });
+  };
+
   return (
     <ScrollView>
       <SafeAreaView style={styles.container}>
@@ -128,6 +137,14 @@ export default function MyProfileScreen() {
               <Ionicons name="md-create" size={25} color="black" />
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            style={styles.signOutButton}
+            onPress={() => {
+              setModalVisible(true);
+              setSignOutButton(true);
+            }}>
+            <Ionicons name="md-log-out" size={25} color="#323232" />
+          </TouchableOpacity>
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.infoText}>{userName}</Text>
@@ -181,23 +198,33 @@ export default function MyProfileScreen() {
         </View>
         <Modal visible={modalVisible} animationType="slide">
           <View style={styles.modalContainer}>
-            <View style={styles.modalButtonContainer}>
-              <Pressable
-                style={styles.modalButton}
-                onPress={() => takePhotoFromCamera()}>
-                <Text style={styles.buttonText}>Take Photo</Text>
-              </Pressable>
-              <Pressable
-                style={styles.modalButton}
-                onPress={() => takePhotoFromGallery()}>
-                <Text style={styles.buttonText}>Choose Photo</Text>
-              </Pressable>
-            </View>
+            {!signOutButton && (
+              <View style={styles.modalButtonContainer}>
+                <Pressable
+                  style={styles.modalButton}
+                  onPress={() => takePhotoFromCamera()}>
+                  <Text style={styles.buttonText}>Take Photo</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.modalButton}
+                  onPress={() => takePhotoFromGallery()}>
+                  <Text style={styles.buttonText}>Choose Photo</Text>
+                </Pressable>
+              </View>
+            )}
 
             <View style={styles.modalButtonContainer}>
+              {signOutButton && (
+                <Pressable style={styles.modalButton} onPress={() => signOut()}>
+                  <Text style={styles.buttonText}>Sign out</Text>
+                </Pressable>
+              )}
               <Pressable
                 style={styles.modalButton}
-                onPress={() => setModalVisible(false)}>
+                onPress={() => {
+                  setModalVisible(false);
+                  setSignOutButton(false);
+                }}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </Pressable>
             </View>
@@ -216,7 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   imageContainer: {
-    width: 200,
+    width: WIDTH - 40,
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
@@ -334,7 +361,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // marginTop: 20,
   },
   modalContainer: {
     flex: 1,
@@ -373,5 +399,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#0356e8',
     borderRadius: 8,
     marginBottom: 10,
+  },
+  signOutButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

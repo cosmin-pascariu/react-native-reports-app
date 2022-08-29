@@ -5,6 +5,7 @@ import {
   Pressable,
   TextInput,
   Alert,
+  ScrollView,
 } from 'react-native';
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
@@ -121,7 +122,7 @@ export default function SignUpScreen() {
               values;
 
             return (
-              <View style={styles.formContainer}>
+              <ScrollView style={styles.formContainer}>
                 <View style={styles.rowLabel}>
                   <Text style={styles.label}>E-mail</Text>
                   {touched.email && errors.email && (
@@ -133,6 +134,8 @@ export default function SignUpScreen() {
                   <TextInput
                     style={styles.emailInput}
                     placeholder="Your E-mail"
+                    color="#323232"
+                    placeholderTextColor="#999"
                     value={email}
                     onBlur={handleBlur('email')}
                     onChangeText={handleChange('email')}
@@ -150,6 +153,8 @@ export default function SignUpScreen() {
                   <TextInput
                     style={styles.emailInput}
                     placeholder="Your Password"
+                    color="#323232"
+                    placeholderTextColor="#999"
                     secureTextEntry={!passwordVisibility}
                     value={password}
                     onBlur={handleBlur('password')}
@@ -175,6 +180,8 @@ export default function SignUpScreen() {
                   <TextInput
                     style={styles.emailInput}
                     placeholder="Confirm Your Password"
+                    color="#323232"
+                    placeholderTextColor="#999"
                     secureTextEntry={!confirmPasswordVisibility}
                     value={confirmPassword}
                     onBlur={handleBlur('confirmPassword')}
@@ -203,7 +210,7 @@ export default function SignUpScreen() {
                   onPress={() => navigation.goBack()}>
                   <Text style={styles.buttonTextBlue}>Sign In</Text>
                 </Pressable>
-              </View>
+              </ScrollView>
             );
           }}
         </Formik>
@@ -261,8 +268,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     textDecoration: 'none',
-    // fontWeight: 'bold',
-    marginBottom: 50,
   },
   boldText: {
     fontWeight: 'bold',

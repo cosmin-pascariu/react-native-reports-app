@@ -16,6 +16,8 @@ const Textarea = ({textareaValue, onchangetext, onblur}) => {
       <CustomTextInput
         style={styles.textarea}
         placeholder="Write a short description of what happen..."
+        color="#323232"
+        placeholderTextColor="#999"
         multiline={true}
         numberOfLines={8}
         maxLength={300}
