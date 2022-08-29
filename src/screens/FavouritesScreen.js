@@ -43,7 +43,7 @@ export default function FavouritesScreen() {
               post.postUserProfilePicture || auth().currentUser.photoURL
             }
             userProfileName={post.postUserName}
-            location="Bucharest, Romania"
+            location={post.location}
             postImages={post.images}
             title={post.title}
             description={post.description}
