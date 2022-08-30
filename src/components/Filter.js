@@ -115,7 +115,6 @@ export default function Filter({
         <View style={styles.radioContainer}>
           <Text style={styles.sortTitle}> Sort by: </Text>
           <RadioGroup
-            color="#323232"
             radioButtons={radioButtons}
             onPress={onPressRadioButton}
             containerStyle={styles.radioGroup}

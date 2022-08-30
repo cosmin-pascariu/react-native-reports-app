@@ -12,8 +12,10 @@ import {
   Platform,
   Modal,
   PermissionsAndroid,
+  TouchableWithoutFeedback,
   TouchableOpacity,
   Pressable,
+  TouchableHighlight,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Textarea from '../components/Textarea';
@@ -68,6 +70,8 @@ export default function AddScreen({route, navigation}) {
   // is focused is used to check if the screen is focused or not
   const isFocused = useIsFocused();
   const [modalVisibility, setModalVisibility] = useState(true);
+  const [deleteImageModalVisibility, setDeleteImageModalVisibility] =
+    useState(false);
 
   const checkIsFocused = () => {
     // debugger;
@@ -78,6 +82,7 @@ export default function AddScreen({route, navigation}) {
 
   const [currentUserId, setCurrentUserId] = useState('');
   const [currentPostId, setCurrentPostId] = useState([]);
+  const [selectedImage, setSelectedImage] = useState([]);
 
   const [image, setImage] = useState(null);
   const [imagesFromStorage, setImagesFromStorage] = useState([]);
@@ -352,41 +357,52 @@ export default function AddScreen({route, navigation}) {
           )}
         </View>
         <View style={styles.mediaButtons}>
-          <TouchableOpacity onPress={takePhotoFromCamera}>
+          <TouchableWithoutFeedback onPress={takePhotoFromCamera}>
             <View style={styles.customImgButton}>
               <Image
                 source={require('../assets/camera.png')}
                 style={styles.customImgBackground}
               />
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={takeMultiplePhotos}>
+          </TouchableWithoutFeedback>
+          <TouchableWithoutFeedback onPress={takeMultiplePhotos}>
             <View style={styles.customImgButton}>
               <Image
                 source={require('../assets/gallery.png')}
                 style={styles.customImgBackground}
               />
             </View>
-          </TouchableOpacity>
+          </TouchableWithoutFeedback>
         </View>
         {images.length > 0 && (
-          <View style={styles.loadedImages}>
-            {imagesFromStorage.length > 0
-              ? imagesFromStorage.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={{uri: image}}
-                    style={styles.loadedImage}
-                  />
-                ))
-              : images.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={{uri: image.path}}
-                    style={styles.loadedImage}
-                  />
-                ))}
-          </View>
+          <>
+            <Text>Keep long press ot delete an image</Text>
+            <View style={styles.loadedImages}>
+              {imagesFromStorage.length > 0
+                ? imagesFromStorage.map((image, index) => (
+                    <Image
+                      key={index}
+                      source={{uri: image}}
+                      style={styles.loadedImage}
+                    />
+                  ))
+                : images.map((image, index) => (
+                    <TouchableHighlight
+                      key={index}
+                      style={styles.loadedImage}
+                      onLongPress={() => {
+                        setDeleteImageModalVisibility(true);
+                        setSelectedImage(image);
+                      }}>
+                      <Image
+                        key={index}
+                        source={{uri: image.path}}
+                        style={styles.loadedImage}
+                      />
+                    </TouchableHighlight>
+                  ))}
+            </View>
+          </>
         )}
         <View style={styles.rowLabel}>
           <Text style={styles.label}>Location</Text>
@@ -462,6 +478,38 @@ export default function AddScreen({route, navigation}) {
                           routes: [{name: 'Home'}, {name: 'Add'}],
                         }),
                       );
+                    }}>
+                    <Text style={{color: 'white'}}>OK</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
+        {deleteImageModalVisibility && (
+          <Modal visible={deleteImageModalVisibility} transparent={true}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modal}>
+                <Text style={styles.modalTitle}>
+                  Are you sure you want to delete this image?
+                </Text>
+                <View style={styles.rowLabel}>
+                  <Pressable
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setDeleteImageModalVisibility(false);
+                    }}>
+                    <Text style={{color: 'white'}}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setDeleteImageModalVisibility(false);
+                      setFieldValue(
+                        'images',
+                        images.filter(item => item !== selectedImage),
+                      );
+                      setSelectedImage(null);
                     }}>
                     <Text style={{color: 'white'}}>OK</Text>
                   </Pressable>
@@ -639,6 +687,24 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     marginRight: 'auto',
   },
+  modalButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+  },
+  modalButtonTextCancel: {
+    fontSize: 16,
+    color: '#0356e8',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+  },
+  modalButtonTextOk: {
+    fontSize: 16,
+    color: '#fff',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+  },
 });
 
 const validationSchema = Yup.object().shape({
@@ -652,4 +718,4 @@ const validationSchema = Yup.object().shape({
   location: Yup.string().required('Location is required'),
 });
 
-// WHEN CLICK ON IMAGE >>>> IMAGE GO FULLSCREEN
+// LONG PRESS TO DELETE IMAGE
