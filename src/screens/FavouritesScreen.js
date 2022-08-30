@@ -24,10 +24,8 @@ export default function FavouritesScreen() {
         let docs = [];
         snapshot.forEach(doc => {
           docs.push({...doc.data(), id: doc.id});
-          console.log('doc', doc.id);
         });
         setPosts(docs);
-        console.log('posts', posts);
       });
   }, []);
 

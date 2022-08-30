@@ -19,9 +19,7 @@ import {useNavigation, CommonActions} from '@react-navigation/native';
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [postID, setPostID] = useState(null);
   const [myPostId, setMyPostId] = useState(null);
-
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -55,8 +53,6 @@ export default function MyPostsScreen() {
         setModalVisible(false);
       });
   };
-
-  // console.log('mypostID', myPostId);
 
   return (
     <ScrollView>
@@ -127,11 +123,6 @@ export default function MyPostsScreen() {
                   <TouchableOpacity
                     onPress={() => {
                       setModalVisible(false);
-                      console.log('mypostID', myPostId);
-                      // navigation.navigate('Add', {
-                      //   postId: myPostId,
-                      //   edit: true,
-                      // });
                       navigation.dispatch(
                         CommonActions.reset({
                           index: 0,

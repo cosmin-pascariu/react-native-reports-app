@@ -197,8 +197,8 @@ export default function SignUpScreen() {
                   />
                 </View>
                 <Text style={styles.forgotPass}>
-                  By singing up you agree to our{' '}
-                  <Text style={styles.boldText}>Terms of service</Text> and{' '}
+                  By singing up you agree to our
+                  <Text style={styles.boldText}>Terms of service</Text> and
                   <Text style={styles.boldText}>Privacy policy</Text>
                 </Text>
 

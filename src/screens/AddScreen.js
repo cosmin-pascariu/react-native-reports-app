@@ -57,12 +57,12 @@ export default function AddScreen({route, navigation}) {
   } = useFormik({
     initialValues: postData,
     onSubmit: () => {
-      console.log(values);
       route?.params?.edit ? editPost() : submitPost();
     },
     validationSchema: validationSchema,
   });
 
+  /// Destructuring the params
   const {title, description, images, location} = values;
 
   // is focused is used to check if the screen is focused or not
@@ -71,10 +71,7 @@ export default function AddScreen({route, navigation}) {
 
   const checkIsFocused = () => {
     // debugger;
-    if (isFocused) {
-      console.log('focused');
-    } else {
-      console.log('not focused');
+    if (!isFocused) {
       setModalVisibility(true);
     }
   };
@@ -193,10 +190,10 @@ export default function AddScreen({route, navigation}) {
       cropping: true,
     })
       .then(image => {
-        console.log('Images', postData.images);
+        setFieldValue('images', [...images, image.path]);
       })
       .catch(err => {
-        console.warn(err);
+        console.log(err);
       });
   };
 
@@ -208,7 +205,6 @@ export default function AddScreen({route, navigation}) {
     })
       .then(images => {
         setFieldValue('images', images);
-        console.log('Images', postData.images);
       })
       .catch(err => {
         console.log(err);
@@ -261,19 +257,46 @@ export default function AddScreen({route, navigation}) {
     setFieldValue('description', '');
     setFieldValue('images', []);
     setFieldValue('location', '');
+    setMarkers([]);
+  };
+
+  const formatImages = imagesToBeFormated => {
+    let imagesPath = [];
+    console.log(imagesToBeFormated);
+    const promises = imagesToBeFormated.map(async image => {
+      const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
+      let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+
+      // Add timestamp to filename to avoid name collisions
+      const extension = filename.split('.').pop();
+      const name = filename.split('.').slice(0, -1).join('.');
+      filename = name + Date.now() + '.' + extension;
+
+      try {
+        await storage().ref(filename).putFile(uploadUri);
+        imagesPath.push(filename);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    console.log('IMAGES PATH', imagesPath);
+    return imagesPath;
   };
 
   const editPost = async () => {
+    let imagesPath = formatImages(images);
     const updatedPost = {
-      // images: images,
       title: title,
+      description: description,
+      // images: imagesPath,
       location: location,
       coordinates: {
         latitude: region.latitude,
         longitude: region.longitude,
       },
-      description: description,
     };
+    console.log('Formated images: ', formatImages(images));
+    console.log('UPDATED POST', updatedPost);
     await firestore()
       .collection('posts')
       .doc(route?.params?.postId)
@@ -376,9 +399,7 @@ export default function AddScreen({route, navigation}) {
             Platform.OS !== 'ios'
               ? PermissionsAndroid.request(
                   PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                ).then(granted => {
-                  console.log('Granted:', granted);
-                })
+                )
               : navigation.navigate('HomeScreen');
           }}
           style={styles.map}
@@ -393,8 +414,7 @@ export default function AddScreen({route, navigation}) {
           showsIndoors={true}
           showsIndoorLevelPicker={true}
           showsPointsOfInterest={true}
-          onPress={e => newMarker(e)}
-          onValueChange={itemValue => setFieldValue('location', itemValue)}>
+          onPress={e => newMarker(e)}>
           {markers.map(marker => (
             <Marker
               key={marker.key}

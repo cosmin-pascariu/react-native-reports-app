@@ -9,6 +9,7 @@ import {
   Alert,
   Dimensions,
   Pressable,
+  Modal,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {useRoute} from '@react-navigation/native';
@@ -18,6 +19,7 @@ import storage from '@react-native-firebase/storage';
 import uuid from 'react-native-uuid';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import DoubleClick from 'react-native-double-tap';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -41,6 +43,8 @@ export default function Post({
 }) {
   const route = useRoute();
   const navigation = useNavigation();
+
+  const [modalImages, setModalImages] = useState(false);
 
   comments === undefined ? (comments = []) : (comments = comments);
   const [postComments, setPostComments] = useState(comments);
@@ -281,6 +285,11 @@ export default function Post({
     return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
   };
 
+  function handleImageDoublePress(e) {
+    setFullScreenImage(true);
+    Alert.alert('double press');
+  }
+
   return (
     <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
@@ -307,22 +316,18 @@ export default function Post({
         horizontal
         style={styles.imageContainer}>
         {images.map(image => (
-          <Image
-            key={uuid.v4()}
-            source={{uri: image}}
-            style={[styles.postImage, {width: WIDTH}]}
-          />
+          <DoubleClick
+            key={image}
+            doubleTap={() => setModalImages(true)}
+            delay={200}>
+            <Image
+              key={uuid.v4()}
+              source={{uri: image}}
+              style={[styles.postImage, {width: WIDTH}]}
+            />
+          </DoubleClick>
         ))}
       </ScrollView>
-      <View style={styles.imageDot}>
-        {postImages.map((e, index) => (
-          <Text
-            key={e}
-            style={imgActive == index ? styles.dotActive : styles.dot}>
-            &#9679;
-          </Text>
-        ))}
-      </View>
       <View style={styles.upvotedContent}>
         <View style={styles.upvotedButtons}>
           <Ionicons
@@ -395,6 +400,42 @@ export default function Post({
           Post
         </Text>
       </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalImages}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <ScrollView
+              onScroll={({nativeEvent}) => onchange(nativeEvent)}
+              showHorizontalScrollIndicator={false}
+              pagingEnabled
+              horizontal
+              style={{width: '100%'}}>
+              {images.map(image => (
+                <Image
+                  key={uuid.v4()}
+                  source={{uri: image}}
+                  style={[
+                    styles.postImage,
+                    {width: WIDTH, height: HEIGHT / 1.1},
+                  ]}
+                />
+              ))}
+            </ScrollView>
+            <Pressable
+              style={styles.closeButton}
+              onPress={() => {
+                setModalImages(!modalImages);
+              }}>
+              <Ionicons name="close-circle" style={styles.closeButtonIcon} />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -511,22 +552,6 @@ const styles = StyleSheet.create({
     width: 100,
     justifyContent: 'space-between',
   },
-  imageDot: {
-    position: 'absolute',
-    top: HEIGHT / 2 + 50,
-    flexDirection: 'row',
-    alignSelf: 'center',
-  },
-  dotActive: {
-    margin: 3,
-    color: '#0356e8',
-    fontSize: 20,
-  },
-  dot: {
-    margin: 3,
-    color: '#aaa',
-    fontSize: 20,
-  },
   settingButtonIcon: {
     fontSize: 24,
     color: '#323232',
@@ -547,5 +572,28 @@ const styles = StyleSheet.create({
     color: '#aaa',
     marginLeft: 10,
     marginRight: 10,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: HEIGHT,
+    width: WIDTH,
+  },
+  modalView: {
+    width: '100%',
+    height: '100%',
+    paddingVertical: 50,
+    backgroundColor: '#333',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  closeButtonIcon: {
+    fontSize: 35,
+    color: '#fff',
   },
 });
