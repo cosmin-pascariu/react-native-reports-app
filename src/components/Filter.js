@@ -23,16 +23,31 @@ export default function Filter({
       id: '1', // acts as primary key, should be unique and non-empty string
       label: 'Title',
       value: 'title',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
     {
       id: '2',
       label: 'Location',
       value: 'location',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
     {
       id: '3',
       label: 'Created Date',
       value: 'createdAt',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
   ];
 
@@ -41,16 +56,31 @@ export default function Filter({
       id: '1', // acts as primary key, should be unique and non-empty string
       label: 'Title',
       value: 'title',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
     {
       id: '2',
       label: 'Location',
       value: 'location',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
     {
       id: '3',
       label: 'Description',
       value: 'description',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
   ];
 
@@ -59,11 +89,21 @@ export default function Filter({
       id: '1', // acts as primary key, should be unique and non-empty string
       label: 'Ascending',
       value: 'ascending',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
     {
       id: '2',
       label: 'Descending',
       value: 'descending',
+      color: '#0356e8',
+      borderColor: '#323232',
+      labelStyle: {
+        color: '#444',
+      },
     },
   ];
 
@@ -115,6 +155,7 @@ export default function Filter({
         <View style={styles.radioContainer}>
           <Text style={styles.sortTitle}> Sort by: </Text>
           <RadioGroup
+            color="#f00"
             radioButtons={radioButtons}
             onPress={onPressRadioButton}
             containerStyle={styles.radioGroup}
@@ -167,11 +208,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  filterText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#323232',
-  },
   filterInput: {
     width: '87%',
     height: 40,
@@ -190,7 +226,6 @@ const styles = StyleSheet.create({
   },
   rowContainer: {
     flexDirection: 'row',
-    color: '#323232',
     width: '100%',
   },
   searchButton: {
@@ -234,11 +269,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'flex-start',
     marginTop: 10,
-    color: '#323232',
-    radioButtonStyle: {
-      borderWidth: 1,
-      color: '#323232',
-    },
   },
   sortTitle: {
     fontSize: 18,
