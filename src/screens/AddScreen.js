@@ -32,7 +32,7 @@ import {
   useIsFocused,
   CommonActions,
 } from '@react-navigation/native';
-import {Formik, useFormik} from 'formik';
+import {useFormik} from 'formik';
 import * as Yup from 'yup';
 
 const WIDTH = Dimensions.get('window').width;

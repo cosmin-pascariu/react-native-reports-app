@@ -20,7 +20,7 @@ const Textarea = ({textareaValue, onchangetext, onblur}) => {
         placeholderTextColor="#999"
         multiline={true}
         numberOfLines={8}
-        maxLength={300}
+        maxLength={500}
         editable
         value={textareaValue}
         onChangeText={onchangetext}

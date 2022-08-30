@@ -19,19 +19,54 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
 import firestore from '@react-native-firebase/firestore';
+import {useFormik} from 'formik';
+import * as Yup from 'yup';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
 
 export default function MyProfileScreen() {
-  const [userID, setUserID] = useState(null);
-  const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-  const [userPassword, setUserPassword] = useState('');
   const [inputVisibility, setInputVisibility] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [signOutButton, setSignOutButton] = useState(false);
+  const [updatePasswordVisibility, setUpdatePasswordVisibility] =
+    useState(false);
+
+  const profileData = {
+    userId: '',
+    userName: '',
+    userEmail: '',
+    userPassword: '',
+    userNewPassword: '',
+    userConfirmPassword: '',
+    userProfileImage: '',
+  };
+
+  //FORMIK
+  const {
+    handleSubmit,
+    handleChange,
+    values,
+    setFieldValue,
+    touched,
+    handleBlur,
+    errors,
+  } = useFormik({
+    initialValues: profileData,
+    onSubmit: () => updateUser(),
+    validationSchema: validationSchema,
+  });
+
+  /// Destructuring the params
+  const {
+    userId,
+    name,
+    email,
+    password,
+    newPassword,
+    confirmPassword,
+    profileImage,
+  } = values;
 
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
@@ -40,7 +75,7 @@ export default function MyProfileScreen() {
       cropping: true,
     })
       .then(image => {
-        setProfileImage(image.path);
+        setFieldValue('profileImage', image.path);
         setModalVisible(false);
       })
       .catch(err => {
@@ -54,7 +89,7 @@ export default function MyProfileScreen() {
       height: HEIGHT / 2 - 20,
     })
       .then(image => {
-        setProfileImage(image.path);
+        setFieldValue('profileImage', image.path);
         setModalVisible(false);
       })
       .catch(err => {
@@ -70,25 +105,25 @@ export default function MyProfileScreen() {
       .where('uid', '==', userId)
       .onSnapshot(doc => {
         doc.forEach(doc => {
-          setUserID(doc.id);
-          setUserName(doc.data().name);
-          setUserEmail(doc.data().email);
-          setUserPassword(doc.data().password);
-          setProfileImage(doc.data().profileImage);
+          setFieldValue('userId', doc.id);
+          setFieldValue('name', doc.data().name);
+          setFieldValue('email', doc.data().email);
+          setFieldValue('password', doc.data().password);
+          setFieldValue('profileImage', doc.data().profileImage);
         });
       });
   }, []);
 
   // update user Data in firebase
   const updateUser = () => {
-    console.log('userIDd', userID);
+    console.log('userId', userId);
     firestore()
       .collection('users')
-      .doc(userID)
+      .doc(userId)
       .update({
-        name: userName,
-        email: userEmail,
-        password: userPassword,
+        name: name,
+        email: email,
+        password: password,
         profileImage: profileImage,
       })
       .then(() => {
@@ -99,10 +134,10 @@ export default function MyProfileScreen() {
         console.error('Error updating document: ', error);
       });
     auth().currentUser.updateProfile({
-      displayName: userName,
+      displayName: name,
       photoURL: profileImage,
-      email: userEmail,
-      password: userPassword,
+      email: email,
+      password: password,
     });
     firestore()
       .collection('posts')
@@ -110,7 +145,7 @@ export default function MyProfileScreen() {
       .onSnapshot(snapshot => {
         snapshot.forEach(doc => {
           firestore().collection('posts').doc(doc.id).update({
-            postUserName: userName,
+            postUserName: name,
             postUserProfilePicture: profileImage,
           });
         });
@@ -147,37 +182,104 @@ export default function MyProfileScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>{userName}</Text>
+          <Text style={styles.infoText}>{name}</Text>
         </View>
-        <Text style={styles.label}>Name</Text>
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Name</Text>
+          {touched.name && errors.name && (
+            <Text style={styles.errorMessage}>{errors.name}</Text>
+          )}
+        </View>
         <TextInput
           style={styles.input}
           placeholder="Insert your name"
-          value={userName}
-          onChangeText={text => setUserName(text)}
+          value={name}
+          onChangeText={handleChange('name')}
+          onBlur={handleBlur('name')}
           editable={inputVisibility}
         />
-        <Text style={styles.label}>Email</Text>
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Email</Text>
+          {touched.email && errors.email && (
+            <Text style={styles.errorMessage}>{errors.email}</Text>
+          )}
+        </View>
         <TextInput
           style={styles.input}
           placeholder="Insert your email"
-          value={userEmail}
-          onChangeText={text => setUserEmail(text)}
+          value={email}
+          onChangeText={handleChange('email')}
+          onBlur={handleBlur('email')}
           editable={inputVisibility}
         />
-        <Text style={styles.label}>Password</Text>
+        <View style={styles.rowLabel}>
+          <Text style={styles.label}>Password</Text>
+          {touched.password && errors.password && (
+            <Text style={styles.errorMessage}>{errors.password}</Text>
+          )}
+        </View>
         <TextInput
           style={styles.input}
           placeholder="Insert your password"
-          value={userPassword}
-          onChangeText={text => setUserPassword(text)}
-          editable={inputVisibility}
+          value={password}
+          onChangeText={handleChange('password')}
+          onBlur={handleBlur('password')}
+          editable={updatePasswordVisibility}
           secureTextEntry={true}
         />
+        {inputVisibility && (
+          <Pressable
+            onPress={() =>
+              setUpdatePasswordVisibility(!updatePasswordVisibility)
+            }>
+            <View style={styles.updateButton}>
+              <Text style={styles.updateButtonText}>
+                {updatePasswordVisibility ? 'Cancel' : 'Edit'}
+              </Text>
+            </View>
+          </Pressable>
+        )}
+        {updatePasswordVisibility && (
+          <>
+            <View style={styles.rowLabel}>
+              <Text style={styles.label}>New Password</Text>
+              {touched.newPassword && errors.newPassword && (
+                <Text style={styles.errorMessage}>{errors.newPassword}</Text>
+              )}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Insert your new password"
+              value={newPassword}
+              onChangeText={handleChange('newPassword')}
+              onBlur={handleBlur('newPassword')}
+              editable={updatePasswordVisibility}
+              secureTextEntry={true}
+            />
+            <View style={styles.rowLabel}>
+              <Text style={styles.label}>Confirm New Password</Text>
+              {touched.confirmPassword && errors.confirmPassword && (
+                <Text style={styles.errorMessage}>
+                  {errors.confirmPassword}
+                </Text>
+              )}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChangeText={handleChange('confirmPassword')}
+              onBlur={handleBlur('confirmPassword')}
+              editable={updatePasswordVisibility}
+              secureTextEntry={true}
+            />
+          </>
+        )}
+
         <View style={styles.buttonContainer}>
           {inputVisibility ? (
             <>
-              <Pressable style={styles.button} onPress={() => updateUser()}>
+              <Pressable style={styles.button} onPress={handleSubmit}>
                 <Text style={styles.buttonText}>Save</Text>
               </Pressable>
               <Pressable
@@ -282,9 +384,15 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  rowLabel: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   editButton: {
     position: 'absolute',
-    right: 0,
+    right: '20%',
     top: 150,
     width: 50,
     height: 50,
@@ -300,6 +408,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  errorMessage: {
+    color: '#ff0000',
   },
   infoContainer: {
     marginTop: 20,
@@ -419,4 +530,45 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  updateButton: {
+    position: 'absolute',
+    top: -58,
+    right: 4,
+    width: 60,
+    height: 36,
+    backgroundColor: '#0356e8',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  updateButtonText: {
+    fontSize: 14,
+    color: '#fff',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+  },
+});
+
+const validationSchema = Yup.object().shape({
+  name: Yup.string().required('Required').min(6, 'Too Short!'),
+  email: Yup.string().required('Required'),
+  password: Yup.string()
+    .required('Required')
+    .min(8, 'Password must be at least 8 characters'),
+  newPassword: Yup.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: Yup.string().test(
+    'passwords-match',
+    'Passwords must match',
+    function (value) {
+      return this.parent.newPassword === value;
+    },
+  ),
 });
