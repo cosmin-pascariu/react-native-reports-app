@@ -285,11 +285,6 @@ export default function Post({
     return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
   };
 
-  function handleImageDoublePress(e) {
-    setFullScreenImage(true);
-    Alert.alert('double press');
-  }
-
   return (
     <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
@@ -581,7 +576,6 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: '100%',
-    height: 400,
     paddingVertical: 'auto',
     alignItems: 'center',
     justifyContent: 'center',

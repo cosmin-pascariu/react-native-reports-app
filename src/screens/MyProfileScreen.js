@@ -7,6 +7,7 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Pressable,
   Dimensions,
   Modal,
@@ -30,7 +31,7 @@ export default function MyProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [signOutButton, setSignOutButton] = useState(false);
   const [updatePasswordVisibility, setUpdatePasswordVisibility] =
-    useState(false);
+    useState(true);
 
   const profileData = {
     userId: '',
@@ -219,29 +220,30 @@ export default function MyProfileScreen() {
             <Text style={styles.errorMessage}>{errors.password}</Text>
           )}
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Insert your password"
-          value={password}
-          color="#323232"
-          placeholderTextColor="#999"
-          onChangeText={handleChange('password')}
-          onBlur={handleBlur('password')}
-          editable={updatePasswordVisibility}
-          secureTextEntry={true}
-        />
-        {inputVisibility && (
-          <Pressable
-            onPress={() =>
-              setUpdatePasswordVisibility(!updatePasswordVisibility)
-            }>
-            <View style={styles.updateButton}>
+        <View>
+          <TextInput
+            style={styles.input}
+            placeholder="Insert your password"
+            value={password}
+            color="#323232"
+            placeholderTextColor="#999"
+            onChangeText={handleChange('password')}
+            onBlur={handleBlur('password')}
+            editable={updatePasswordVisibility}
+            secureTextEntry={true}
+          />
+          {inputVisibility && (
+            <Pressable
+              style={styles.updateButton}
+              onPress={() =>
+                setUpdatePasswordVisibility(!updatePasswordVisibility)
+              }>
               <Text style={styles.updateButtonText}>
                 {updatePasswordVisibility ? 'Cancel' : 'Edit'}
               </Text>
-            </View>
-          </Pressable>
-        )}
+            </Pressable>
+          )}
+        </View>
         {updatePasswordVisibility && (
           <>
             <View style={styles.rowLabel}>
@@ -539,8 +541,8 @@ const styles = StyleSheet.create({
   },
   updateButton: {
     position: 'absolute',
-    top: -58,
     right: 4,
+    top: 12,
     width: 60,
     height: 36,
     backgroundColor: '#0356e8',
