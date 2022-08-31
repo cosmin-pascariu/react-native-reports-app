@@ -14,7 +14,7 @@ import {
   Alert,
   PermissionsAndroid,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
@@ -31,7 +31,7 @@ export default function MyProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [signOutButton, setSignOutButton] = useState(false);
   const [updatePasswordVisibility, setUpdatePasswordVisibility] =
-    useState(true);
+    useState(false);
 
   const profileData = {
     userId: '',
@@ -235,9 +235,9 @@ export default function MyProfileScreen() {
           {inputVisibility && (
             <Pressable
               style={styles.updateButton}
-              onPress={() =>
-                setUpdatePasswordVisibility(!updatePasswordVisibility)
-              }>
+              onPress={() => {
+                setUpdatePasswordVisibility(!updatePasswordVisibility);
+              }}>
               <Text style={styles.updateButtonText}>
                 {updatePasswordVisibility ? 'Cancel' : 'Edit'}
               </Text>
@@ -245,7 +245,7 @@ export default function MyProfileScreen() {
           )}
         </View>
         {updatePasswordVisibility && (
-          <>
+          <View>
             <View style={styles.rowLabel}>
               <Text style={styles.label}>New Password</Text>
               {touched.newPassword && errors.newPassword && (
@@ -282,7 +282,7 @@ export default function MyProfileScreen() {
               editable={updatePasswordVisibility}
               secureTextEntry={true}
             />
-          </>
+          </View>
         )}
 
         <View style={styles.buttonContainer}>

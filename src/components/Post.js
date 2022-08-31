@@ -10,6 +10,7 @@ import {
   Dimensions,
   Pressable,
   Modal,
+  Animated,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {useRoute} from '@react-navigation/native';
@@ -20,6 +21,8 @@ import uuid from 'react-native-uuid';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DoubleClick from 'react-native-double-tap';
+import Pinchable from 'react-native-pinchable';
+import ImageZoom from 'react-native-image-pan-zoom';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -411,11 +414,18 @@ export default function Post({
               horizontal
               style={{width: '100%', height: 400}}>
               {images.map(image => (
-                <Image
+                <ImageZoom
                   key={uuid.v4()}
-                  source={{uri: image}}
-                  style={styles.postImage}
-                />
+                  cropWidth={WIDTH}
+                  cropHeight={HEIGHT}
+                  imageWidth={WIDTH - 10}
+                  imageHeight={HEIGHT}>
+                  <Image
+                    key={uuid.v4()}
+                    source={{uri: image}}
+                    style={styles.postImage}
+                  />
+                </ImageZoom>
               ))}
             </ScrollView>
           </View>
