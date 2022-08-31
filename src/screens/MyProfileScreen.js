@@ -181,9 +181,6 @@ export default function MyProfileScreen() {
             <Ionicons name="md-log-out" size={25} color="#323232" />
           </TouchableOpacity>
         </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>{name}</Text>
-        </View>
         <View style={styles.rowLabel}>
           <Text style={styles.label}>Name</Text>
           {touched.name && errors.name && (
@@ -194,6 +191,8 @@ export default function MyProfileScreen() {
           style={styles.input}
           placeholder="Insert your name"
           value={name}
+          color="#323232"
+          placeholderTextColor="#999"
           onChangeText={handleChange('name')}
           onBlur={handleBlur('name')}
           editable={inputVisibility}
@@ -208,6 +207,8 @@ export default function MyProfileScreen() {
           style={styles.input}
           placeholder="Insert your email"
           value={email}
+          color="#323232"
+          placeholderTextColor="#999"
           onChangeText={handleChange('email')}
           onBlur={handleBlur('email')}
           editable={inputVisibility}
@@ -222,6 +223,8 @@ export default function MyProfileScreen() {
           style={styles.input}
           placeholder="Insert your password"
           value={password}
+          color="#323232"
+          placeholderTextColor="#999"
           onChangeText={handleChange('password')}
           onBlur={handleBlur('password')}
           editable={updatePasswordVisibility}
@@ -251,6 +254,8 @@ export default function MyProfileScreen() {
               style={styles.input}
               placeholder="Insert your new password"
               value={newPassword}
+              color="#323232"
+              placeholderTextColor="#999"
               onChangeText={handleChange('newPassword')}
               onBlur={handleBlur('newPassword')}
               editable={updatePasswordVisibility}
@@ -268,6 +273,8 @@ export default function MyProfileScreen() {
               style={styles.input}
               placeholder="Confirm your password"
               value={confirmPassword}
+              color="#323232"
+              placeholderTextColor="#999"
               onChangeText={handleChange('confirmPassword')}
               onBlur={handleBlur('confirmPassword')}
               editable={updatePasswordVisibility}

@@ -376,7 +376,9 @@ export default function AddScreen({route, navigation}) {
         </View>
         {images.length > 0 && (
           <>
-            <Text>Keep long press ot delete an image</Text>
+            <Text style={{color: '#323232'}}>
+              Keep long press to delete an image
+            </Text>
             <View style={styles.loadedImages}>
               {imagesFromStorage.length > 0
                 ? imagesFromStorage.map((image, index) => (

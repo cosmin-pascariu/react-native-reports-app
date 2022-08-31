@@ -414,26 +414,23 @@ export default function Post({
               showHorizontalScrollIndicator={false}
               pagingEnabled
               horizontal
-              style={{width: '100%'}}>
+              style={{width: '100%', height: 400}}>
               {images.map(image => (
                 <Image
                   key={uuid.v4()}
                   source={{uri: image}}
-                  style={[
-                    styles.postImage,
-                    {width: WIDTH, height: HEIGHT / 1.1},
-                  ]}
+                  style={styles.postImage}
                 />
               ))}
             </ScrollView>
-            <Pressable
-              style={styles.closeButton}
-              onPress={() => {
-                setModalImages(!modalImages);
-              }}>
-              <Ionicons name="close-circle" style={styles.closeButtonIcon} />
-            </Pressable>
           </View>
+          <Pressable
+            style={styles.closeButton}
+            onPress={() => {
+              setModalImages(!modalImages);
+            }}>
+            <Ionicons name="close-circle" style={styles.closeButtonIcon} />
+          </Pressable>
         </View>
       </Modal>
     </View>
@@ -466,6 +463,7 @@ const styles = StyleSheet.create({
   postImage: {
     objectFit: 'cover',
     height: 400,
+    width: WIDTH,
   },
   profileContainer: {
     flexDirection: 'row',
@@ -579,13 +577,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: HEIGHT,
     width: WIDTH,
+    backgroundColor: '#333',
   },
   modalView: {
     width: '100%',
-    height: '100%',
-    paddingVertical: 50,
-    backgroundColor: '#333',
+    height: 400,
+    paddingVertical: 'auto',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   closeButton: {
     position: 'absolute',
