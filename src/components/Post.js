@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 5,
     paddingBottom: 5,
-    paddingLeft: 5,
+    paddingLeft: 10,
     backgroundColor: '#fff',
   },
   profileImage: {
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 5,
-    paddingHorizontal: 3,
+    paddingHorizontal: 10,
     backgroundColor: '#fff',
   },
   commentContainer: {

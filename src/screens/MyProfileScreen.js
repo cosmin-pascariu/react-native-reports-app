@@ -20,6 +20,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 
@@ -98,9 +99,7 @@ export default function MyProfileScreen() {
       });
   };
 
-  // load data from firebase
-  useEffect(() => {
-    const userId = auth().currentUser.uid;
+  const loadUserData = userId => {
     firestore()
       .collection('users')
       .where('uid', '==', userId)
@@ -111,13 +110,57 @@ export default function MyProfileScreen() {
           setFieldValue('email', doc.data().email);
           setFieldValue('password', doc.data().password);
           setFieldValue('profileImage', doc.data().profileImage);
+          console.log('profileImage', doc.data().profileImage);
+          console.log('userProfileImage', auth().currentUser.photoURL);
         });
       });
+  };
+
+  // load data from firebase
+  useEffect(() => {
+    const userId = auth().currentUser.uid;
+    loadUserData(userId);
   }, []);
 
+  const updateUserPassword = () => {
+    if (newPassword === confirmPassword) {
+      auth()
+        .currentUser.updatePassword(newPassword)
+        .then(() => {
+          console.log('Password updated!');
+          setUpdatePasswordVisibility(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    } else {
+      Alert.alert('Password does not match');
+    }
+  };
+
+  const updateUserEmail = () => {
+    auth()
+      .currentUser.updateEmail(email)
+      .then(() => {
+        console.log('Email updated!');
+        setUpdatePasswordVisibility(false);
+      })
+      .catch(error => {
+        Alert.alert(error);
+      });
+  };
   // update user Data in firebase
-  const updateUser = () => {
-    console.log('userId', userId);
+  const updateUser = async () => {
+    let filename = profileImage.substring(profileImage.lastIndexOf('/') + 1);
+    // Add timestamp to filename to avoid name collisions
+    const extension = filename.split('.').pop();
+    const nameOfImage = filename.split('.').slice(0, -1).join('.');
+    filename = nameOfImage + Date.now() + '.' + extension;
+    try {
+      await storage().ref(filename).putFile(profileImage);
+    } catch (error) {
+      console.log(error);
+    }
     firestore()
       .collection('users')
       .doc(userId)
@@ -134,12 +177,19 @@ export default function MyProfileScreen() {
       .catch(error => {
         console.error('Error updating document: ', error);
       });
-    auth().currentUser.updateProfile({
-      displayName: name,
-      photoURL: profileImage,
-      email: email,
-      password: password,
-    });
+    auth()
+      .currentUser.updateProfile({
+        displayName: name,
+        photoURL: profileImage,
+      })
+      .then(() => {
+        console.log('User profile updated!');
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    auth().currentUser.email !== email && updateUserEmail();
+    auth().currentUser.password !== newPassword && updateUserPassword();
     firestore()
       .collection('posts')
       .where('userId', '==', auth().currentUser.uid)
@@ -151,6 +201,7 @@ export default function MyProfileScreen() {
           });
         });
       });
+    setUpdatePasswordVisibility(false);
   };
 
   const signOut = () => {
@@ -158,6 +209,65 @@ export default function MyProfileScreen() {
       .signOut()
       .then(() => {
         console.log('User signed out!');
+      });
+  };
+
+  const deleteAllUserData = () => {
+    firestore()
+      .collection('users')
+      .where('uid', '==', userId)
+      .get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          doc.ref.delete();
+        }),
+          firestore()
+            .collection('posts')
+            .where('userId', '==', auth().currentUser.uid)
+            .get()
+            .then(snapshot => {
+              snapshot.forEach(doc => {
+                doc.ref.delete();
+              }),
+                firestore()
+                  .collection('comments')
+                  .where('userId', '==', auth().currentUser.uid)
+                  .get()
+                  .then(snapshot => {
+                    snapshot.forEach(doc => {
+                      doc.ref.delete();
+                    });
+                  })
+                  .catch(error => {
+                    console.log(error);
+                  })
+                  .then(() => {
+                    Alert.alert('Success', 'User deleted successfully');
+                    signOut();
+                  })
+                  .catch(error => {
+                    console.log(error);
+                  });
+            })
+            .catch(error => {
+              console.log(error);
+            });
+      })
+      .catch(error => {
+        console.log(error);
+      }),
+      setInputVisibility(false);
+  };
+
+  const deleteAccount = () => {
+    deleteAllUserData();
+    auth()
+      .currentUser.delete()
+      .then(() => {
+        console.log('User account deleted!');
+      })
+      .catch(error => {
+        console.error(error);
       });
   };
 
@@ -293,7 +403,11 @@ export default function MyProfileScreen() {
               </Pressable>
               <Pressable
                 style={styles.cancelButton}
-                onPress={() => setInputVisibility(false)}>
+                onPress={() => {
+                  setInputVisibility(false);
+                  setUpdatePasswordVisibility(false);
+                  loadUserData(auth().currentUser.uid);
+                }}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </Pressable>
             </>
@@ -301,7 +415,10 @@ export default function MyProfileScreen() {
             <View style={styles.buttonContainer}>
               <Pressable
                 style={[styles.button, {width: WIDTH - 50}]}
-                onPress={() => setInputVisibility(true)}>
+                onPress={() => {
+                  setInputVisibility(true);
+                  console.log(auth().currentUser);
+                }}>
                 <Text style={styles.buttonText}>Edit Fields</Text>
               </Pressable>
             </View>
@@ -339,6 +456,11 @@ export default function MyProfileScreen() {
                 <Text style={styles.buttonText}>Cancel</Text>
               </Pressable>
             </View>
+            <Pressable
+              style={[styles.modalButton, {backgroundColor: '#f00'}]}
+              onPress={() => deleteAccount()}>
+              <Text style={styles.buttonText}>Delete account</Text>
+            </Pressable>
           </View>
         </Modal>
       </SafeAreaView>
