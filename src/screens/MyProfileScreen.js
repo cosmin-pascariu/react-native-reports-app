@@ -33,6 +33,7 @@ export default function MyProfileScreen() {
   const [signOutButton, setSignOutButton] = useState(false);
   const [updatePasswordVisibility, setUpdatePasswordVisibility] =
     useState(false);
+  const [deleteAccountVisibility, setDeleteAccountVisibility] = useState(false);
 
   const profileData = {
     userId: '',
@@ -122,24 +123,65 @@ export default function MyProfileScreen() {
     loadUserData(userId);
   }, []);
 
-  const updateUserPassword = () => {
+  const reauthenticate = currentPassword => {
+    var user = auth().currentUser;
+    var cred = auth.EmailAuthProvider.credential(user.email, currentPassword);
+    return user.reauthenticateWithCredential(cred);
+  };
+
+  const updateUserPassword = async () => {
     if (newPassword === confirmPassword) {
-      auth()
-        .currentUser.updatePassword(newPassword)
+      await reauthenticate(password)
         .then(() => {
-          console.log('Password updated!');
-          setUpdatePasswordVisibility(false);
+          var user = auth().currentUser;
+          user
+            .updatePassword(newPassword)
+            .then(() => {
+              console.log('Password updated!');
+              setUpdatePasswordVisibility(false);
+              setFieldValue('password', newPassword);
+              setFieldValue('newPassword', '');
+              setFieldValue('confirmPassword', '');
+              Alert.alert('Password updated!');
+            })
+            .catch(error => {
+              console.log(error);
+            });
         })
         .catch(error => {
           console.log(error);
         });
     } else {
-      Alert.alert('Password does not match');
+      Alert.alert('Password does not match!');
     }
   };
 
-  const updateUserEmail = () => {
-    auth()
+  const updateUserEmail = async () => {
+    // if (email !== auth().currentUser.email) {
+    //   await reauthenticate(password)
+    //     .then(() => {
+    //       var user = auth().currentUser;
+    //       user
+    //         .updateEmail(email)
+    //         .then(() => {
+    //           setUpdatePasswordVisibility(false);
+    //           setFieldValue('password', newPassword);
+    //           setFieldValue('newPassword', '');
+    //           setFieldValue('confirmPassword', '');
+    //           Alert.alert('Password updated!');
+    //         })
+    //         .catch(error => {
+    //           console.log(error);
+    //         });
+    //     })
+    //     .catch(error => {
+    //       console.log(error);
+    //     });
+    // } else {
+    //   Alert.alert('Same email!');
+    // }
+
+    await auth()
       .currentUser.updateEmail(email)
       .then(() => {
         console.log('Email updated!');
@@ -149,6 +191,7 @@ export default function MyProfileScreen() {
         Alert.alert(error);
       });
   };
+
   // update user Data in firebase
   const updateUser = async () => {
     let filename = profileImage.substring(profileImage.lastIndexOf('/') + 1);
@@ -188,7 +231,8 @@ export default function MyProfileScreen() {
       .catch(error => {
         console.log(error);
       });
-    auth().currentUser.email !== email && updateUserEmail();
+    Alert.alert(email);
+    updateUserEmail();
     auth().currentUser.password !== newPassword && updateUserPassword();
     firestore()
       .collection('posts')
@@ -212,63 +256,33 @@ export default function MyProfileScreen() {
       });
   };
 
-  const deleteAllUserData = () => {
-    firestore()
+  const deleteAccount = async () => {
+    await firestore()
       .collection('users')
-      .where('uid', '==', userId)
-      .get()
-      .then(snapshot => {
-        snapshot.forEach(doc => {
-          doc.ref.delete();
-        }),
-          firestore()
-            .collection('posts')
-            .where('userId', '==', auth().currentUser.uid)
-            .get()
-            .then(snapshot => {
-              snapshot.forEach(doc => {
-                doc.ref.delete();
-              }),
-                firestore()
-                  .collection('comments')
-                  .where('userId', '==', auth().currentUser.uid)
-                  .get()
-                  .then(snapshot => {
-                    snapshot.forEach(doc => {
-                      doc.ref.delete();
-                    });
-                  })
-                  .catch(error => {
-                    console.log(error);
-                  })
-                  .then(() => {
-                    Alert.alert('Success', 'User deleted successfully');
-                    signOut();
-                  })
-                  .catch(error => {
-                    console.log(error);
-                  });
-            })
-            .catch(error => {
-              console.log(error);
-            });
-      })
-      .catch(error => {
-        console.log(error);
-      }),
-      setInputVisibility(false);
-  };
-
-  const deleteAccount = () => {
-    deleteAllUserData();
-    auth()
-      .currentUser.delete()
+      .doc(userId)
+      .delete()
       .then(() => {
-        console.log('User account deleted!');
-      })
-      .catch(error => {
-        console.error(error);
+        firestore()
+          .collection('posts')
+          .where('userId', '==', auth().currentUser.uid)
+          .onSnapshot(snapshot => {
+            snapshot.forEach(doc => {
+              firestore().collection('posts').doc(doc.id).delete();
+            });
+          })
+          .then(() => {
+            auth()
+              .currentUser.delete()
+              .then(() => {
+                console.log('User deleted!');
+              })
+              .catch(error => {
+                console.log(error);
+              });
+          });
       });
+
+    setInputVisibility(false);
   };
 
   return (
@@ -426,7 +440,7 @@ export default function MyProfileScreen() {
         </View>
         <Modal visible={modalVisible} animationType="slide">
           <View style={styles.modalContainer}>
-            {!signOutButton && (
+            {!signOutButton && !deleteAccountVisibility && (
               <View style={styles.modalButtonContainer}>
                 <Pressable
                   style={styles.modalButton}
@@ -441,10 +455,24 @@ export default function MyProfileScreen() {
               </View>
             )}
 
+            <Text style={styles.modalText}>
+              {signOutButton &&
+                !deleteAccountVisibility &&
+                'Are you sure you want to sign out?'}
+              {deleteAccountVisibility &&
+                'Are you sure you want to delete your account?'}
+            </Text>
             <View style={styles.modalButtonContainer}>
-              {signOutButton && (
+              {signOutButton && !deleteAccountVisibility && (
                 <Pressable style={styles.modalButton} onPress={() => signOut()}>
                   <Text style={styles.buttonText}>Sign out</Text>
+                </Pressable>
+              )}
+              {deleteAccountVisibility && (
+                <Pressable
+                  style={styles.modalButton}
+                  onPress={() => deleteAccount()}>
+                  <Text style={styles.buttonText}>Agree</Text>
                 </Pressable>
               )}
               <Pressable
@@ -452,15 +480,18 @@ export default function MyProfileScreen() {
                 onPress={() => {
                   setModalVisible(false);
                   setSignOutButton(false);
+                  setDeleteAccountVisibility(false);
                 }}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </Pressable>
             </View>
-            <Pressable
-              style={[styles.modalButton, {backgroundColor: '#f00'}]}
-              onPress={() => deleteAccount()}>
-              <Text style={styles.buttonText}>Delete account</Text>
-            </Pressable>
+            {signOutButton && (
+              <Pressable
+                style={[styles.modalButton, {backgroundColor: '#f00'}]}
+                onPress={() => setDeleteAccountVisibility(true)}>
+                <Text style={styles.buttonText}>Delete account</Text>
+              </Pressable>
+            )}
           </View>
         </Modal>
       </SafeAreaView>
@@ -685,6 +716,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',
+  },
+  modalText: {
+    fontSize: 18,
+    color: '#323232',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
 });
 
