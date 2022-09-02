@@ -254,7 +254,7 @@ export default function AddScreen({route, navigation}) {
       usersList: [],
       comments: [],
     };
-
+    console.log(post);
     await firestore().collection('posts').add(post);
     Alert.alert('Success', 'Post added successfully');
 

@@ -111,8 +111,6 @@ export default function MyProfileScreen() {
           setFieldValue('email', doc.data().email);
           setFieldValue('password', doc.data().password);
           setFieldValue('profileImage', doc.data().profileImage);
-          console.log('profileImage', doc.data().profileImage);
-          console.log('userProfileImage', auth().currentUser.photoURL);
         });
       });
   };
@@ -192,6 +190,79 @@ export default function MyProfileScreen() {
       });
   };
 
+  // update user profile image
+  const updateUserProfileImage = async filename => {
+    await storage()
+      .ref(filename)
+      .getDownloadURL()
+      .then(url => {
+        firestore()
+          .collection('users')
+          .doc(userId)
+          .update({
+            name,
+            email,
+            password,
+            profileImage: url,
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      });
+  };
+
+  // update auth user profile image
+  const updateAuthUserProfileImage = async filename => {
+    await storage()
+      .ref(filename)
+      .getDownloadURL()
+      .then(url => {
+        auth()
+          .currentUser.updateProfile({
+            photoURL: url,
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      });
+  };
+
+  // update post user profile image
+  const updatePostUserProfileImage = async filename => {
+    Alert.alert('Franta');
+    await storage()
+      .ref(filename)
+      .getDownloadURL()
+      .then(url => {
+        firestore()
+          .collection('posts')
+          .where('userId', '==', userId)
+          .get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              firestore()
+                .collection('posts')
+                .doc(doc.id)
+                .update({
+                  postUserProfilePicture: url,
+                })
+                .catch(error => {
+                  console.log(error);
+                });
+            }),
+              () => {
+                console.log('done');
+              };
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
   // update user Data in firebase
   const updateUser = async () => {
     let filename = profileImage.substring(profileImage.lastIndexOf('/') + 1);
@@ -204,48 +275,11 @@ export default function MyProfileScreen() {
     } catch (error) {
       console.log(error);
     }
-    firestore()
-      .collection('users')
-      .doc(userId)
-      .update({
-        name: name,
-        email: email,
-        password: password,
-        profileImage: profileImage,
-      })
-      .then(() => {
-        setInputVisibility(false);
-        Alert.alert('Success', 'User updated successfully');
-      })
-      .catch(error => {
-        console.error('Error updating document: ', error);
-      });
-    auth()
-      .currentUser.updateProfile({
-        displayName: name,
-        photoURL: profileImage,
-      })
-      .then(() => {
-        console.log('User profile updated!');
-      })
-      .catch(error => {
-        console.log(error);
-      });
-    Alert.alert(email);
-    updateUserEmail();
-    auth().currentUser.password !== newPassword && updateUserPassword();
-    firestore()
-      .collection('posts')
-      .where('userId', '==', auth().currentUser.uid)
-      .onSnapshot(snapshot => {
-        snapshot.forEach(doc => {
-          firestore().collection('posts').doc(doc.id).update({
-            postUserName: name,
-            postUserProfilePicture: profileImage,
-          });
-        });
-      });
-    setUpdatePasswordVisibility(false);
+    updateUserProfileImage(filename);
+    updateAuthUserProfileImage(filename);
+    updatePostUserProfileImage(filename);
+    setInputVisibility(false);
+    Alert.alert('Profile updated!');
   };
 
   const signOut = () => {
@@ -431,7 +465,6 @@ export default function MyProfileScreen() {
                 style={[styles.button, {width: WIDTH - 50}]}
                 onPress={() => {
                   setInputVisibility(true);
-                  console.log(auth().currentUser);
                 }}>
                 <Text style={styles.buttonText}>Edit Fields</Text>
               </Pressable>
