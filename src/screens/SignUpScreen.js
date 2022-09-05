@@ -31,7 +31,9 @@ export default function SignUpScreen() {
     confirmPassword: '',
     profileImage:
       'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
-    fullName: 'anonim',
+    fullName: '',
+    location: '',
+    admin: false,
   };
 
   const validationSchema = yup.object({
@@ -43,7 +45,6 @@ export default function SignUpScreen() {
       .string()
       .required('Password is required')
       .min(8, 'Password must be at least 8 characters'),
-    fullName: yup.string().required('Full name is required'),
     confirmPassword: yup
       .string()
       .required('Confirm password is required')
@@ -61,6 +62,8 @@ export default function SignUpScreen() {
         email: data.email,
         password: data.password,
         profileImage: data.profileImage,
+        location: data.location,
+        admin: data.admin,
       })
       .then(() => {
         console.log('Document successfully written!');

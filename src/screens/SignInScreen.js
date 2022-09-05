@@ -25,7 +25,7 @@ export default function SignInScreen() {
     email: '',
     password: '',
     profileImage: '',
-    fullName: 'anonim',
+    fullName: '',
   };
 
   const validationSchema = yup.object({
@@ -36,8 +36,7 @@ export default function SignInScreen() {
     password: yup
       .string()
       .required('Password is required')
-      .min(8, 'Password must be at least 6 characters'),
-    fullName: yup.string().required('Full name is required'),
+      .min(8, 'Password must be at least 8 characters'),
   });
 
   const userSignIn = (email, password) => {

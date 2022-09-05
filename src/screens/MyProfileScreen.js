@@ -15,19 +15,21 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import React, {useState, useEffect, useRef} from 'react';
-import {useFocusEffect} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import ImagePicker from 'react-native-image-crop-picker';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import {useFormik} from 'formik';
+import SelectDropdown from 'react-native-select-dropdown';
 import * as Yup from 'yup';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
 
 export default function MyProfileScreen() {
+  const route = useRoute();
   const [inputVisibility, setInputVisibility] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [signOutButton, setSignOutButton] = useState(false);
@@ -43,6 +45,7 @@ export default function MyProfileScreen() {
     userNewPassword: '',
     userConfirmPassword: '',
     userProfileImage: '',
+    userLocation: '',
   };
 
   //FORMIK
@@ -56,7 +59,12 @@ export default function MyProfileScreen() {
     errors,
   } = useFormik({
     initialValues: profileData,
-    onSubmit: () => updateUser(),
+    onSubmit: () => {
+      updateUser();
+      updateUserData();
+      route?.name === 'SetupProfileScreen' &&
+        navigation.navigate('SetupProfileScreen');
+    },
     validationSchema: validationSchema,
   });
 
@@ -69,6 +77,7 @@ export default function MyProfileScreen() {
     newPassword,
     confirmPassword,
     profileImage,
+    location,
   } = values;
 
   const takePhotoFromCamera = () => {
@@ -111,6 +120,7 @@ export default function MyProfileScreen() {
           setFieldValue('email', doc.data().email);
           setFieldValue('password', doc.data().password);
           setFieldValue('profileImage', doc.data().profileImage);
+          setFieldValue('location', doc.data().location);
         });
       });
   };
@@ -119,80 +129,12 @@ export default function MyProfileScreen() {
   useEffect(() => {
     const userId = auth().currentUser.uid;
     loadUserData(userId);
+    route?.name === 'SetupProfileScreen' && setInputVisibility(true);
   }, []);
 
-  const reauthenticate = currentPassword => {
-    var user = auth().currentUser;
-    var cred = auth.EmailAuthProvider.credential(user.email, currentPassword);
-    return user.reauthenticateWithCredential(cred);
-  };
-
-  const updateUserPassword = async () => {
-    if (newPassword === confirmPassword) {
-      await reauthenticate(password)
-        .then(() => {
-          var user = auth().currentUser;
-          user
-            .updatePassword(newPassword)
-            .then(() => {
-              console.log('Password updated!');
-              setUpdatePasswordVisibility(false);
-              setFieldValue('password', newPassword);
-              setFieldValue('newPassword', '');
-              setFieldValue('confirmPassword', '');
-              Alert.alert('Password updated!');
-            })
-            .catch(error => {
-              console.log(error);
-            });
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    } else {
-      Alert.alert('Password does not match!');
-    }
-  };
-
-  const updateUserEmail = async () => {
-    // if (email !== auth().currentUser.email) {
-    //   await reauthenticate(password)
-    //     .then(() => {
-    //       var user = auth().currentUser;
-    //       user
-    //         .updateEmail(email)
-    //         .then(() => {
-    //           setUpdatePasswordVisibility(false);
-    //           setFieldValue('password', newPassword);
-    //           setFieldValue('newPassword', '');
-    //           setFieldValue('confirmPassword', '');
-    //           Alert.alert('Password updated!');
-    //         })
-    //         .catch(error => {
-    //           console.log(error);
-    //         });
-    //     })
-    //     .catch(error => {
-    //       console.log(error);
-    //     });
-    // } else {
-    //   Alert.alert('Same email!');
-    // }
-
-    await auth()
-      .currentUser.updateEmail(email)
-      .then(() => {
-        console.log('Email updated!');
-        setUpdatePasswordVisibility(false);
-      })
-      .catch(error => {
-        Alert.alert(error);
-      });
-  };
-
   // update user profile image
-  const updateUserProfileImage = async filename => {
-    await storage()
+  const updateUserProfileImage = filename => {
+    storage()
       .ref(filename)
       .getDownloadURL()
       .then(url => {
@@ -204,6 +146,10 @@ export default function MyProfileScreen() {
             email,
             password,
             profileImage: url,
+            location,
+          })
+          .then(() => {
+            setFieldValue('profileImage', url);
           })
           .catch(error => {
             console.log(error);
@@ -212,8 +158,9 @@ export default function MyProfileScreen() {
   };
 
   // update auth user profile image
-  const updateAuthUserProfileImage = async filename => {
-    await storage()
+  const updateAuthUserProfileImage = filename => {
+    console.log('updateAuthUserProfileImage');
+    storage()
       .ref(filename)
       .getDownloadURL()
       .then(url => {
@@ -228,9 +175,9 @@ export default function MyProfileScreen() {
   };
 
   // update post user profile image
-  const updatePostUserProfileImage = async filename => {
-    Alert.alert('Franta');
-    await storage()
+  const updatePostUserProfileImage = filename => {
+    console.log('updatePostUserProfileImage');
+    storage()
       .ref(filename)
       .getDownloadURL()
       .then(url => {
@@ -319,6 +266,48 @@ export default function MyProfileScreen() {
     setInputVisibility(false);
   };
 
+  const updateUserData = () => {
+    firestore()
+      .collection('users')
+      .doc(userId)
+      .update({
+        name,
+        email,
+        password,
+        // profileImage,
+        location,
+      })
+      .then(() => {
+        Alert.alert('Profile updated!');
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+  const locations = fetch('https://roloca.coldfuse.io/judete')
+    .then(response => response.json())
+    .then(json => {
+      return json;
+    })
+    .catch(error => {
+      console.error(error);
+    });
+
+  const getLocations = () => {
+    let locationsArray = [];
+    locations.then(data => {
+      data.forEach(location => {
+        locationsArray.push(location.nume);
+      });
+    });
+    return locationsArray;
+  };
+
+  useEffect(() => {
+    getLocations();
+  }, []);
+
   return (
     <ScrollView>
       <SafeAreaView style={styles.container}>
@@ -331,14 +320,16 @@ export default function MyProfileScreen() {
               <Ionicons name="md-create" size={25} color="black" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={styles.signOutButton}
-            onPress={() => {
-              setModalVisible(true);
-              setSignOutButton(true);
-            }}>
-            <Ionicons name="md-log-out" size={25} color="#323232" />
-          </TouchableOpacity>
+          {route?.name !== 'SetupProfileScreen' && (
+            <TouchableOpacity
+              style={styles.signOutButton}
+              onPress={() => {
+                setModalVisible(true);
+                setSignOutButton(true);
+              }}>
+              <Ionicons name="md-log-out" size={25} color="#323232" />
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.rowLabel}>
           <Text style={styles.label}>Name</Text>
@@ -357,6 +348,43 @@ export default function MyProfileScreen() {
           editable={inputVisibility}
         />
         <View style={styles.rowLabel}>
+          <Text style={styles.label}>Location</Text>
+          {touched.location && errors.location && (
+            <Text style={styles.errorMessage}>{errors.location}</Text>
+          )}
+        </View>
+        <SelectDropdown
+          data={getLocations()}
+          onSelect={(selectedItem, index) => {
+            setFieldValue('location', selectedItem);
+          }}
+          defaultButtonText={location}
+          buttonTextAfterSelection={(selectedItem, index) => {
+            return selectedItem;
+          }}
+          rowTextForSelection={(item, index) => {
+            return item;
+          }}
+          buttonStyle={styles.dropdownButton}
+          buttonTextStyle={styles.dropdownButtonText}
+          renderDropdownIcon={() => {
+            return (
+              <Ionicons
+                name="md-arrow-down-circle"
+                size={25}
+                color="#323232"
+                style={styles.dropdownIcon}
+              />
+            );
+          }}
+          dropdownIconPosition="right"
+          rowStyle={styles.dropdownRow}
+          rowTextStyle={styles.dropdownRowText}
+          dropdownStyle={styles.dropdown}
+          disabled={!inputVisibility}
+        />
+
+        <View style={styles.rowLabel}>
           <Text style={styles.label}>Email</Text>
           {touched.email && errors.email && (
             <Text style={styles.errorMessage}>{errors.email}</Text>
@@ -370,7 +398,7 @@ export default function MyProfileScreen() {
           placeholderTextColor="#999"
           onChangeText={handleChange('email')}
           onBlur={handleBlur('email')}
-          editable={inputVisibility}
+          editable={inputVisibility && route?.name !== 'SetupProfileScreen'}
         />
         <View style={styles.rowLabel}>
           <Text style={styles.label}>Password</Text>
@@ -390,7 +418,7 @@ export default function MyProfileScreen() {
             editable={updatePasswordVisibility}
             secureTextEntry={true}
           />
-          {inputVisibility && (
+          {inputVisibility && route?.name !== 'SetupProfileScreen' && (
             <Pressable
               style={styles.updateButton}
               onPress={() => {
@@ -437,7 +465,9 @@ export default function MyProfileScreen() {
               placeholderTextColor="#999"
               onChangeText={handleChange('confirmPassword')}
               onBlur={handleBlur('confirmPassword')}
-              editable={updatePasswordVisibility}
+              editable={
+                updatePasswordVisibility && route?.name !== 'SetupProfileScreen'
+              }
               secureTextEntry={true}
             />
           </View>
@@ -452,9 +482,13 @@ export default function MyProfileScreen() {
               <Pressable
                 style={styles.cancelButton}
                 onPress={() => {
-                  setInputVisibility(false);
-                  setUpdatePasswordVisibility(false);
-                  loadUserData(auth().currentUser.uid);
+                  if (route?.name === 'SetupProfileScreen') {
+                    signOut();
+                  } else {
+                    setInputVisibility(false);
+                    setUpdatePasswordVisibility(false);
+                    loadUserData(auth().currentUser.uid);
+                  }
                 }}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </Pressable>
@@ -465,6 +499,7 @@ export default function MyProfileScreen() {
                 style={[styles.button, {width: WIDTH - 50}]}
                 onPress={() => {
                   setInputVisibility(true);
+                  console.log(route);
                 }}>
                 <Text style={styles.buttonText}>Edit Fields</Text>
               </Pressable>
@@ -537,7 +572,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    marginTop: 20,
+    // marginTop: 20,
+    marginVertical: 'auto',
+    height: HEIGHT,
   },
   imageContainer: {
     width: WIDTH - 40,
@@ -563,6 +600,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
+    width: '100%',
     marginTop: 10,
     marginBottom: 20,
     padding: 10,
@@ -757,6 +795,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+  dropdownButtonText: {
+    fontSize: 14,
+    color: '#323232',
+    textDecoration: 'none',
+  },
+  dropdownButton: {
+    height: 40,
+    width: '100%',
+    marginVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#323232',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  dropdownRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 });
 
 const validationSchema = Yup.object().shape({
@@ -773,4 +840,74 @@ const validationSchema = Yup.object().shape({
       return this.parent.newPassword === value;
     },
   ),
+  location: Yup.string().required('Required'),
 });
+
+// const reauthenticate = currentPassword => {
+//   var user = auth().currentUser;
+//   var cred = auth.EmailAuthProvider.credential(user.email, currentPassword);
+//   return user.reauthenticateWithCredential(cred);
+// };
+
+// const updateUserPassword = async () => {
+//   if (newPassword === confirmPassword) {
+//     await reauthenticate(password)
+//       .then(() => {
+//         var user = auth().currentUser;
+//         user
+//           .updatePassword(newPassword)
+//           .then(() => {
+//             console.log('Password updated!');
+//             setUpdatePasswordVisibility(false);
+//             setFieldValue('password', newPassword);
+//             setFieldValue('newPassword', '');
+//             setFieldValue('confirmPassword', '');
+//             Alert.alert('Password updated!');
+//           })
+//           .catch(error => {
+//             console.log(error);
+//           });
+//       })
+//       .catch(error => {
+//         console.log(error);
+//       });
+//   } else {
+//     Alert.alert('Password does not match!');
+//   }
+// };
+
+// const updateUserEmail = async () => {
+//   // if (email !== auth().currentUser.email) {
+//   //   await reauthenticate(password)
+//   //     .then(() => {
+//   //       var user = auth().currentUser;
+//   //       user
+//   //         .updateEmail(email)
+//   //         .then(() => {
+//   //           setUpdatePasswordVisibility(false);
+//   //           setFieldValue('password', newPassword);
+//   //           setFieldValue('newPassword', '');
+//   //           setFieldValue('confirmPassword', '');
+//   //           Alert.alert('Password updated!');
+//   //         })
+//   //         .catch(error => {
+//   //           console.log(error);
+//   //         });
+//   //     })
+//   //     .catch(error => {
+//   //       console.log(error);
+//   //     });
+//   // } else {
+//   //   Alert.alert('Same email!');
+//   // }
+
+//   await auth()
+//     .currentUser.updateEmail(email)
+//     .then(() => {
+//       console.log('Email updated!');
+//       setUpdatePasswordVisibility(false);
+//     })
+//     .catch(error => {
+//       Alert.alert(error);
+//     });
+// };

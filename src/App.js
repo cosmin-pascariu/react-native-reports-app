@@ -30,12 +30,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth, {getAuth, updateProfile} from '@react-native-firebase/auth';
 import MyProfileScreen from './screens/MyProfileScreen';
+import firestore from '@react-native-firebase/firestore';
 
 const RootDrawer = createDrawerNavigator();
 
 function App() {
   const [initialising, setInitialising] = useState(true);
   const [user, setUser] = useState();
+  const [userData, setUserData] = useState(null);
 
   // Handle user state changes
   function onAuthStateChanged(user) {
@@ -43,8 +45,22 @@ function App() {
     if (initialising) setInitialising(false);
   }
 
+  const getUserData = () => {
+    firestore()
+      .collection('users')
+      .where('uid', '==', auth().currentUser.uid)
+      .get()
+      .then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          setUserData(doc.data());
+          console.log(doc.data());
+        });
+      });
+  };
+
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    getUserData();
     return subscriber; // unsubscribe on unmount
   }, []);
 
@@ -59,13 +75,23 @@ function App() {
                 swipeEdgeWidth: 0,
                 drawerLockMode: 'locked-open',
               }}>
-              <RootDrawer.Screen
-                name="AppNavigatorScreen"
-                component={AppNavigatorScreen}
-                options={{
-                  drawerItemStyle: {height: 0},
-                }}
-              />
+              {userData?.name.length > 0 && userData?.location.length > 0 ? (
+                <RootDrawer.Screen
+                  name="AppNavigatorScreen"
+                  component={AppNavigatorScreen}
+                  options={{
+                    drawerItemStyle: {height: 0},
+                  }}
+                />
+              ) : (
+                <RootDrawer.Screen
+                  name="SetupProfileScreen"
+                  component={MyProfileScreen}
+                  options={{
+                    drawerItemStyle: {height: 0},
+                  }}
+                />
+              )}
             </RootDrawer.Navigator>
           ) : (
             <RootStackScreen />
