@@ -45,7 +45,22 @@ function App() {
     if (initialising) setInitialising(false);
   }
 
-  const getUserData = () => {
+  // const getUserData = () => {
+  //   firestore()
+  //     .collection('users')
+  //     .where('uid', '==', auth().currentUser.uid)
+  //     .get()
+  //     .then(querySnapshot => {
+  //       querySnapshot.forEach(doc => {
+  //         setUserData(doc.data());
+  //         console.log(doc.data());
+  //       });
+  //     });
+  // };
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+
     firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
@@ -56,11 +71,6 @@ function App() {
           console.log(doc.data());
         });
       });
-  };
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    getUserData();
     return subscriber; // unsubscribe on unmount
   }, []);
 

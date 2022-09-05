@@ -23,12 +23,14 @@ import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import {useFormik} from 'formik';
 import SelectDropdown from 'react-native-select-dropdown';
+import {useNavigation} from '@react-navigation/native';
 import * as Yup from 'yup';
 
 const HEIGHT = Dimensions.get('window').height;
 const WIDTH = Dimensions.get('window').width;
 
 export default function MyProfileScreen() {
+  const navigation = useNavigation();
   const route = useRoute();
   const [inputVisibility, setInputVisibility] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -63,7 +65,7 @@ export default function MyProfileScreen() {
       updateUser();
       updateUserData();
       route?.name === 'SetupProfileScreen' &&
-        navigation.navigate('SetupProfileScreen');
+        navigation.navigate('AppNavigatorScreen');
     },
     validationSchema: validationSchema,
   });
