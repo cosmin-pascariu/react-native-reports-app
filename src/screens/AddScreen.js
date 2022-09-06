@@ -34,6 +34,7 @@ import {
 } from '@react-navigation/native';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
+// import Video from 'react-native-video';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -180,7 +181,6 @@ export default function AddScreen({route, navigation}) {
       })
       .catch(error => console.log(error));
   }
-
   const takePhotoFromCamera = () => {
     ImagePicker.openCamera({
       width: WIDTH,
@@ -188,14 +188,13 @@ export default function AddScreen({route, navigation}) {
       cropping: true,
     })
       .then(image => {
-        setFieldValue('images', [...images, image.path]);
+        setFieldValue('images', [...images, image]);
         getAdminId();
       })
       .catch(err => {
         console.log(err);
       });
   };
-
   const takeMultiplePhotos = () => {
     ImagePicker.openPicker({
       multiple: true,
@@ -204,6 +203,30 @@ export default function AddScreen({route, navigation}) {
     })
       .then(images => {
         setFieldValue('images', images);
+        getAdminId();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+  const takeVideoFromCamera = () => {
+    ImagePicker.openCamera({
+      mediaType: 'video',
+    })
+      .then(video => {
+        setFieldValue('images', [...images, video]);
+        getAdminId();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+  const takeVideoFromGallery = () => {
+    ImagePicker.openPicker({
+      mediaType: 'video',
+    })
+      .then(video => {
+        setFieldValue('images', [...images, video.path]);
         getAdminId();
       })
       .catch(err => {
@@ -259,7 +282,6 @@ export default function AddScreen({route, navigation}) {
     setFieldValue('location', '');
     setMarkers([]);
   };
-
   const formatImages = imagesToBeFormated => {
     let imagesPath = [];
     console.log(imagesToBeFormated);
@@ -281,7 +303,6 @@ export default function AddScreen({route, navigation}) {
     });
     return imagesPath;
   };
-
   const editPost = async () => {
     let imagesPath = formatImages(images);
     const updatedPost = {
@@ -308,7 +329,6 @@ export default function AddScreen({route, navigation}) {
       }),
     );
   };
-
   // get admin Id
   const getAdminId = async () => {
     let userId;
@@ -322,7 +342,6 @@ export default function AddScreen({route, navigation}) {
         });
       });
   };
-
   useEffect(() => {
     checkIsFocused();
     getMyLocation();
@@ -365,7 +384,7 @@ export default function AddScreen({route, navigation}) {
             style={styles.label}
             onPress={() => {
               // getImageFromStorage(images);
-              console.log(adminId);
+              console.log(images);
             }}>
             Media
           </Text>
@@ -383,6 +402,24 @@ export default function AddScreen({route, navigation}) {
             </View>
           </TouchableWithoutFeedback>
           <TouchableWithoutFeedback onPress={takeMultiplePhotos}>
+            <View style={styles.customImgButton}>
+              <Image
+                source={require('../assets/gallery.png')}
+                style={styles.customImgBackground}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+        <View style={styles.mediaButtons}>
+          <TouchableWithoutFeedback onPress={takeVideoFromCamera}>
+            <View style={styles.customImgButton}>
+              <Image
+                source={require('../assets/camera.png')}
+                style={styles.customImgBackground}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+          <TouchableWithoutFeedback onPress={takeVideoFromGallery}>
             <View style={styles.customImgButton}>
               <Image
                 source={require('../assets/gallery.png')}
