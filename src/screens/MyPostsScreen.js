@@ -18,36 +18,35 @@ import {useNavigation, CommonActions} from '@react-navigation/native';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
-  const [userAdmin, setUserAdmin] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [myPostId, setMyPostId] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
     firestore()
-      .collection('posts')
-      .where('userId', '==', auth().currentUser.uid)
-      .onSnapshot(snapshot => {
-        let docs = [];
-        snapshot.forEach(doc => {
-          docs.push({...doc.data(), id: doc.id});
-        });
-        setPosts(docs);
-      });
-  }, []);
-
-  // get admin status
-  const getAdminStatus = () => {
-    firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         snapshot.forEach(doc => {
-          setUserAdmin(doc.data().admin);
+          firestore()
+            .collection('posts')
+            .where(
+              doc.data().admin ? 'adminId' : 'userId',
+              '==',
+              auth().currentUser.uid,
+            )
+            .where('status', '==', 'on review')
+            .onSnapshot(snapshot => {
+              let docs = [];
+              snapshot.forEach(doc => {
+                docs.push({...doc.data(), id: doc.id});
+              });
+              setPosts(docs);
+            });
         });
       });
-  };
-  //delete post
+  }, []);
+
   const deletePostHandler = () => {
     firestore()
       .collection('posts')
@@ -91,7 +90,6 @@ export default function MyPostsScreen() {
             good={post.good}
             bad={post.bad}
             comments={post.comments}
-            adminStatus={userAdmin}
             postStatus={'On review'}
             postAdminId={post.adminId}
           />

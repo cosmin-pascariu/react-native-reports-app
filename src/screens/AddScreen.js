@@ -249,7 +249,7 @@ export default function AddScreen({route, navigation}) {
       usersList: [],
       comments: [],
       adminId: adminId,
-      status: 'work in progress',
+      status: 'on review',
     };
     await firestore().collection('posts').add(post);
     Alert.alert('Success', 'Post added successfully');

@@ -45,7 +45,6 @@ export default function Post({
   good,
   bad,
   comments,
-  adminStatus,
   postStatus,
   postAdminId,
 }) {
@@ -352,7 +351,7 @@ export default function Post({
       </ScrollView>
       <View style={styles.upvotedContent}>
         {userId === auth().currentUser.uid &&
-        !postAdminId &&
+        postAdminId !== auth().currentUser.uid &&
         route.name === 'MyPosts' ? (
           <View style={styles.upvodedButtons}>
             <Text style={styles.postStatus}>{postStatus}</Text>

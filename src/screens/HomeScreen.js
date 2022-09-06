@@ -21,6 +21,7 @@ export default function HomeScreen({filterState}) {
   const getPostData = () => {
     firestore()
       .collection('posts')
+      .where('status', '==', 'approved')
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {

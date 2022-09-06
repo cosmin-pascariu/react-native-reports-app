@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import * as React from 'react';
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useEffect, useMemo, useRoute} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {AuthContext} from './components/context';
 import {
@@ -33,6 +33,7 @@ function App() {
   const [initialising, setInitialising] = useState(true);
   const [user, setUser] = useState();
   const [userData, setUserData] = useState(null);
+  const [onSetupProfile, setOnSetupProfile] = useState(false);
   let userName = '';
   let userLocation = '';
 
@@ -42,9 +43,8 @@ function App() {
     if (initialising) setInitialising(false);
   }
 
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    firestore()
+  const getUserData = async () => {
+    await firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
       .get()
@@ -56,6 +56,11 @@ function App() {
           console.log('User data: ', doc.data());
         });
       });
+  };
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    getUserData();
     return subscriber; // unsubscribe on unmount
   }, []);
 
@@ -65,25 +70,25 @@ function App() {
         <NavigationContainer>
           {user ? (
             <RootDrawer.Navigator
-              initialRouteName={
-                userName === '' ? 'AppNavigatorScreen' : 'SetupProfileScreen'
-              }
-              // initialRouteName="SetupProfileScreen"
+              initialRouteName="SetupProfileScreen"
               screenOptions={{
                 headerShown: false,
                 swipeEdgeWidth: 0,
                 drawerLockMode: 'locked-open',
               }}>
-              <RootDrawer.Screen
-                name="AppNavigatorScreen"
-                component={AppNavigatorScreen}
-                options={{}}
-              />
-              <RootDrawer.Screen
-                name="SetupProfileScreen"
-                component={MyProfileScreen}
-                options={{}}
-              />
+              {userData?.name.length > 0 ? (
+                <RootDrawer.Screen
+                  name="AppNavigatorScreen"
+                  component={AppNavigatorScreen}
+                  options={{}}
+                />
+              ) : (
+                <RootDrawer.Screen
+                  name="SetupProfileScreen"
+                  component={MyProfileScreen}
+                  options={{}}
+                />
+              )}
             </RootDrawer.Navigator>
           ) : (
             <RootStackScreen />
