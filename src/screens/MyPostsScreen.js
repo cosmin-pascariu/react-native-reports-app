@@ -18,6 +18,7 @@ import {useNavigation, CommonActions} from '@react-navigation/native';
 
 export default function MyPostsScreen() {
   const [posts, setPosts] = useState([]);
+  const [userAdmin, setUserAdmin] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [myPostId, setMyPostId] = useState(null);
   const navigation = useNavigation();
@@ -35,6 +36,17 @@ export default function MyPostsScreen() {
       });
   }, []);
 
+  // get admin status
+  const getAdminStatus = () => {
+    firestore()
+      .collection('users')
+      .where('uid', '==', auth().currentUser.uid)
+      .onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          setUserAdmin(doc.data().admin);
+        });
+      });
+  };
   //delete post
   const deletePostHandler = () => {
     firestore()
@@ -79,6 +91,9 @@ export default function MyPostsScreen() {
             good={post.good}
             bad={post.bad}
             comments={post.comments}
+            adminStatus={userAdmin}
+            postStatus={'On review'}
+            postAdminId={post.adminId}
           />
         ))}
         {posts.length === 0 && <NoPostsScreen />}

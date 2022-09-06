@@ -18,12 +18,7 @@ import {
 } from 'react-native-safe-area-context';
 import AppNavigatorScreen from './screens/AppNavigatorScreen';
 import RootStackScreen from './screens/RootStackScreen';
-import {
-  createDrawerNavigator,
-  DrawerContentScrollView,
-  DrawerItemList,
-  DrawerItem,
-} from '@react-navigation/drawer';
+import {createDrawerNavigator} from '@react-navigation/drawer';
 import {authContext} from './components/context';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,6 +33,8 @@ function App() {
   const [initialising, setInitialising] = useState(true);
   const [user, setUser] = useState();
   const [userData, setUserData] = useState(null);
+  let userName = '';
+  let userLocation = '';
 
   // Handle user state changes
   function onAuthStateChanged(user) {
@@ -45,22 +42,8 @@ function App() {
     if (initialising) setInitialising(false);
   }
 
-  // const getUserData = () => {
-  //   firestore()
-  //     .collection('users')
-  //     .where('uid', '==', auth().currentUser.uid)
-  //     .get()
-  //     .then(querySnapshot => {
-  //       querySnapshot.forEach(doc => {
-  //         setUserData(doc.data());
-  //         console.log(doc.data());
-  //       });
-  //     });
-  // };
-
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-
     firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
@@ -68,7 +51,9 @@ function App() {
       .then(querySnapshot => {
         querySnapshot.forEach(doc => {
           setUserData(doc.data());
-          console.log(doc.data());
+          userName = doc.data().name;
+          userLocation = doc.data().location;
+          console.log('User data: ', doc.data());
         });
       });
     return subscriber; // unsubscribe on unmount
@@ -80,28 +65,25 @@ function App() {
         <NavigationContainer>
           {user ? (
             <RootDrawer.Navigator
+              initialRouteName={
+                userName === '' ? 'AppNavigatorScreen' : 'SetupProfileScreen'
+              }
+              // initialRouteName="SetupProfileScreen"
               screenOptions={{
                 headerShown: false,
                 swipeEdgeWidth: 0,
                 drawerLockMode: 'locked-open',
               }}>
-              {userData?.name.length > 0 && userData?.location.length > 0 ? (
-                <RootDrawer.Screen
-                  name="AppNavigatorScreen"
-                  component={AppNavigatorScreen}
-                  options={{
-                    drawerItemStyle: {height: 0},
-                  }}
-                />
-              ) : (
-                <RootDrawer.Screen
-                  name="SetupProfileScreen"
-                  component={MyProfileScreen}
-                  options={{
-                    drawerItemStyle: {height: 0},
-                  }}
-                />
-              )}
+              <RootDrawer.Screen
+                name="AppNavigatorScreen"
+                component={AppNavigatorScreen}
+                options={{}}
+              />
+              <RootDrawer.Screen
+                name="SetupProfileScreen"
+                component={MyProfileScreen}
+                options={{}}
+              />
             </RootDrawer.Navigator>
           ) : (
             <RootStackScreen />
@@ -125,3 +107,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 });
+
+// {user ? (
+//   <RootDrawer.Navigator
+//     screenOptions={{
+//       headerShown: false,
+//       swipeEdgeWidth: 0,
+//       drawerLockMode: 'locked-open',
+//     }}>
+//     {userData?.name.length > 0 && userData?.location.length > 0 ? (
+//       <RootDrawer.Screen
+//         name="AppNavigatorScreen"
+//         component={AppNavigatorScreen}
+//         options={{
+//           drawerItemStyle: {height: 0},
+//         }}
+//       />
+//     ) : (
+//       <RootDrawer.Screen
+//         name="SetupProfileScreen"
+//         component={MyProfileScreen}
+//         options={{
+//           drawerItemStyle: {height: 0},
+//         }}
+//       />
+//     )}
+//   </RootDrawer.Navigator>
+// ) : (
+//   <RootStackScreen />
+// )}

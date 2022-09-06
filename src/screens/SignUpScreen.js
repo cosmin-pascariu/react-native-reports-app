@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     color: '#555',
+    marginLeft: 5,
   },
   signInButton: {
     backgroundColor: '#0356e8',

@@ -65,7 +65,7 @@ export default function MyProfileScreen() {
       updateUser();
       updateUserData();
       route?.name === 'SetupProfileScreen' &&
-        navigation.navigate('AppNavigatorScreen');
+        navigation.navigate('SetupProfileScreen', {name, location});
     },
     validationSchema: validationSchema,
   });
@@ -281,6 +281,13 @@ export default function MyProfileScreen() {
       })
       .then(() => {
         Alert.alert('Profile updated!');
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    auth()
+      .currentUser.updateProfile({
+        displayName: name,
       })
       .catch(error => {
         console.log(error);

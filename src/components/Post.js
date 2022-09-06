@@ -11,6 +11,7 @@ import {
   Pressable,
   Modal,
   Animated,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {useRoute} from '@react-navigation/native';
@@ -29,6 +30,7 @@ const HEIGHT = Dimensions.get('window').height;
 
 export default function Post({
   postId,
+  userId,
   userProfileImage,
   userProfileName,
   postImages,
@@ -43,28 +45,27 @@ export default function Post({
   good,
   bad,
   comments,
+  adminStatus,
+  postStatus,
+  postAdminId,
 }) {
   const route = useRoute();
   const navigation = useNavigation();
 
   const [modalImages, setModalImages] = useState(false);
-
   comments === undefined ? (comments = []) : (comments = comments);
   const [postComments, setPostComments] = useState(comments);
-
   const [comment, setComment] = useState('');
   const [seeMore, setSeemore] = useState(false);
-
   const [imgActive, setImgActive] = useState(0);
   const [images, setImages] = useState([]);
-
   const updatePostComments = async () => {
     const postRef = firestore().collection('posts').doc(postId);
     await postRef.update({
       comments: postComments,
     });
   };
-
+  // add comment
   const onPostPress = () => {
     if (comment === '') {
       Alert.alert('Please enter a comment');
@@ -80,14 +81,12 @@ export default function Post({
       setComment('');
     }
   };
-
   // initialise the state variables for the post
   usersList === undefined ? (usersList = []) : (usersList = usersList);
   const bookmarkState = usersList.includes(auth().currentUser.uid)
     ? true
     : false;
   const [savedPost, setSavedPost] = useState(bookmarkState);
-
   important === undefined || important === 0
     ? (important = [])
     : (important = important);
@@ -95,15 +94,12 @@ export default function Post({
     ? true
     : false;
   const [isImportant, setIsImportant] = useState(importantState);
-
   good === undefined || good === 0 ? (good = []) : (good = good);
   const goodState = good.includes(auth().currentUser.uid) ? true : false;
   const [isGood, setIsGood] = useState(goodState);
-
   bad === undefined || bad === 0 ? (bad = []) : (bad = bad);
   const badState = bad.includes(auth().currentUser.uid) ? true : false;
   const [isBad, setIsBad] = useState(badState);
-
   const onchange = nativeEvent => {
     if (nativeEvent) {
       const slide = Math.ceil(
@@ -114,7 +110,6 @@ export default function Post({
       }
     }
   };
-
   const onPressImportant = () => {
     good.splice(good.indexOf(auth().currentUser.uid), 1);
     bad.splice(bad.indexOf(auth().currentUser.uid), 1);
@@ -288,6 +283,35 @@ export default function Post({
     return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
   };
 
+  const approvePost = () => {
+    firestore()
+      .collection('posts')
+      .doc(postId)
+      .update({
+        status: 'approved',
+      })
+      .then(() => {
+        Alert.alert('Post approved');
+      })
+      .catch(error => {
+        Alert.alert(error.message);
+      });
+  };
+  const rejectPost = () => {
+    firestore()
+      .collection('posts')
+      .doc(postId)
+      .update({
+        status: 'rejected',
+      })
+      .then(() => {
+        Alert.alert('Post rejected');
+      })
+      .catch(error => {
+        Alert.alert(error.message);
+      });
+  };
+
   return (
     <View style={styles.postContainer}>
       <View style={styles.profileContainer}>
@@ -327,29 +351,52 @@ export default function Post({
         ))}
       </ScrollView>
       <View style={styles.upvotedContent}>
-        <View style={styles.upvotedButtons}>
-          <Ionicons
-            name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
-            style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
-            onPress={() => {
-              onPressImportant();
-            }}
-          />
-          <Ionicons
-            name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
-            style={{color: isGood ? 'green' : '#888', fontSize: 25}}
-            onPress={() => {
-              onPressGood();
-            }}
-          />
-          <Ionicons
-            name={isBad ? 'close-circle' : 'close-circle-outline'}
-            style={{color: isBad ? 'red' : '#888', fontSize: 25}}
-            onPress={() => {
-              onPressBad();
-            }}
-          />
-        </View>
+        {userId === auth().currentUser.uid &&
+        !postAdminId &&
+        route.name === 'MyPosts' ? (
+          <View style={styles.upvodedButtons}>
+            <Text style={styles.postStatus}>{postStatus}</Text>
+          </View>
+        ) : postAdminId === auth().currentUser.uid &&
+          route.name === 'MyPosts' ? (
+          <View style={styles.bottomRow}>
+            <TouchableWithoutFeedback onPress={() => rejectPost()}>
+              <View style={styles.postbutton}>
+                <Text style={styles.postbuttonText}>Reject</Text>
+              </View>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={() => approvePost()}>
+              <View style={[styles.postbutton, {backgroundColor: '#0356e8'}]}>
+                <Text style={styles.postbuttonText}>Approve </Text>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        ) : (
+          <View style={styles.upvotedButtons}>
+            <Ionicons
+              name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
+              style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
+              onPress={() => {
+                onPressImportant();
+              }}
+            />
+            <Ionicons
+              name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
+              style={{color: isGood ? 'green' : '#888', fontSize: 25}}
+              onPress={() => {
+                onPressGood();
+              }}
+            />
+            <Ionicons
+              name={isBad ? 'close-circle' : 'close-circle-outline'}
+              style={{color: isBad ? 'red' : '#888', fontSize: 25}}
+              onPress={() => {
+                onPressBad();
+              }}
+            />
+          </View>
+        )}
+
         <Ionicons
           name={savedPost ? 'bookmark' : 'bookmark-outline'}
           style={{color: savedPost ? 'black' : '#888', fontSize: 25}}
@@ -598,5 +645,26 @@ const styles = StyleSheet.create({
   closeButtonIcon: {
     fontSize: 35,
     color: '#fff',
+  },
+  postStatus: {
+    fontSize: 18,
+    color: '#aaa',
+    fontWeight: 'bold',
+  },
+  postbutton: {
+    width: 80,
+    height: 28,
+    backgroundColor: 'red',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  postbuttonText: {
+    fontSize: 14,
+    color: '#fff',
+    marginLeft: 10,
+    marginRight: 10,
+    fontWeight: 'bold',
   },
 });

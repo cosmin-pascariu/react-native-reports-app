@@ -72,6 +72,7 @@ export default function AddScreen({route, navigation}) {
   const [modalVisibility, setModalVisibility] = useState(true);
   const [deleteImageModalVisibility, setDeleteImageModalVisibility] =
     useState(false);
+  const [adminId, setAdminId] = useState();
 
   const checkIsFocused = () => {
     // debugger;
@@ -98,14 +99,6 @@ export default function AddScreen({route, navigation}) {
     }
     setImagesFromStorage(imagesStorage);
   };
-
-  useEffect(() => {
-    checkIsFocused();
-    getMyLocation();
-    if (route?.params?.edit) {
-      autocompleteFields();
-    }
-  }, [route?.params?.edit, isFocused]);
 
   const autocompleteFields = () => {
     if (route?.params?.edit) {
@@ -196,6 +189,7 @@ export default function AddScreen({route, navigation}) {
     })
       .then(image => {
         setFieldValue('images', [...images, image.path]);
+        getAdminId();
       })
       .catch(err => {
         console.log(err);
@@ -210,6 +204,7 @@ export default function AddScreen({route, navigation}) {
     })
       .then(images => {
         setFieldValue('images', images);
+        getAdminId();
       })
       .catch(err => {
         console.log(err);
@@ -253,11 +248,11 @@ export default function AddScreen({route, navigation}) {
       createdAt: new Date(),
       usersList: [],
       comments: [],
+      adminId: adminId,
+      status: 'work in progress',
     };
-    console.log(post);
     await firestore().collection('posts').add(post);
     Alert.alert('Success', 'Post added successfully');
-
     setFieldValue('title', '');
     setFieldValue('description', '');
     setFieldValue('images', []);
@@ -284,7 +279,6 @@ export default function AddScreen({route, navigation}) {
         console.log(error);
       }
     });
-    console.log('IMAGES PATH', imagesPath);
     return imagesPath;
   };
 
@@ -314,6 +308,28 @@ export default function AddScreen({route, navigation}) {
       }),
     );
   };
+
+  // get admin Id
+  const getAdminId = async () => {
+    let userId;
+    const user = await firestore()
+      .collection('users')
+      .where('admin', '==', true)
+      .get()
+      .then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          setAdminId(doc.data().uid);
+        });
+      });
+  };
+
+  useEffect(() => {
+    checkIsFocused();
+    getMyLocation();
+    if (route?.params?.edit) {
+      autocompleteFields();
+    }
+  }, [route?.params?.edit, isFocused]);
 
   return (
     <SafeAreaView>
@@ -348,7 +364,8 @@ export default function AddScreen({route, navigation}) {
           <Text
             style={styles.label}
             onPress={() => {
-              getImageFromStorage(images);
+              // getImageFromStorage(images);
+              console.log(adminId);
             }}>
             Media
           </Text>

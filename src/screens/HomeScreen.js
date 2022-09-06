@@ -12,14 +12,13 @@ Keyboard.dismiss();
 export default function HomeScreen({filterState}) {
   const [posts, setPosts] = useState([]); // array of posts
   const [allPosts, setAllPosts] = useState([]); // array of all posts
-
+  const [userData, setUserData] = useState(null); // user data
   const [searchedItem, setSearchedItem] = useState(''); // value from search input
-
   const [radioButtonValue, setRadioButtonValue] = useState(''); // value for sorting
   const [filterRadioButtonValue, setFilterRadioButtonValue] = useState(''); // value for filtering
   const [sortOrder, setSortOrder] = useState(''); // value for sorting order
 
-  useEffect(() => {
+  const getPostData = () => {
     firestore()
       .collection('posts')
       .onSnapshot(snapshot => {
@@ -30,6 +29,23 @@ export default function HomeScreen({filterState}) {
         setPosts(docs);
         setAllPosts(docs);
       });
+  };
+
+  const getUserData = () => {
+    firestore()
+      .collection('users')
+      .where('uid', '==', auth().currentUser.uid)
+      .get()
+      .then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          setUserData(doc.data());
+        });
+      });
+  };
+
+  useEffect(() => {
+    getPostData();
+    getUserData();
   }, []);
 
   const sortSwitch = value => {
@@ -45,7 +61,6 @@ export default function HomeScreen({filterState}) {
     }
     return setPosts(sorted);
   };
-
   // this function is working
   const filterSwitch = value => {
     if (searchedItem === '' || !value) {
@@ -98,6 +113,7 @@ export default function HomeScreen({filterState}) {
                 good={post.good}
                 bad={post.bad}
                 comments={post.comments}
+                admin={false}
               />
             ))
           : allPosts.map(post => (

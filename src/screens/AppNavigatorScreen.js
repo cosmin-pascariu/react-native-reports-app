@@ -42,19 +42,7 @@ export default function AppNavigatorScreen({navigation}) {
         });
         setNumberOfFav(docs.length);
       });
-    // updateProfileData();
   }, []);
-
-  // const updateProfileData = async () => {
-  //   const user = auth().currentUser;
-  //   console.log(user);
-  //   const userUpdate = {
-  //     displayName: 'Anonim',
-  //     photoURL: auth().currentUser.photoURL,
-  //     // 'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50',
-  //   };
-  //   await user.updateProfile(userUpdate);
-  // };
 
   return (
     <Tab.Navigator
