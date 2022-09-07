@@ -376,6 +376,16 @@ export default function MyProfileScreen() {
           }}
           buttonStyle={styles.dropdownButton}
           buttonTextStyle={styles.dropdownButtonText}
+          // buttonStyle={{width: '100%', margin: 0, padding: 0}}
+          // renderCustomizedButtonChild={(selectedItem, index) => {
+          //   return (
+          //     <View style={styles.dropdownButton}>
+          //       <Text style={styles.dropdownButtonText}>
+          //         {selectedItem || 'Select location'}
+          //       </Text>
+          //     </View>
+          //   );
+          // }}
           renderDropdownIcon={() => {
             return (
               <Ionicons
@@ -387,9 +397,9 @@ export default function MyProfileScreen() {
             );
           }}
           dropdownIconPosition="right"
-          rowStyle={styles.dropdownRow}
-          rowTextStyle={styles.dropdownRowText}
-          dropdownStyle={styles.dropdown}
+          dropdownStyle={{borderRadius: 10}}
+          rowStyle={{width: '100%'}}
+          rowTextStyle={{textAlign: 'left'}}
           disabled={!inputVisibility}
         />
 
@@ -581,9 +591,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    // marginTop: 20,
+    marginTop: 20,
     marginVertical: 'auto',
-    height: HEIGHT,
+    // height: HEIGHT - 150,
   },
   imageContainer: {
     width: WIDTH - 40,
@@ -808,6 +818,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#323232',
     textDecoration: 'none',
+    textAlign: 'left',
+    marginLeft: 5,
   },
   dropdownButton: {
     height: 40,
@@ -826,12 +838,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderRadius: 8,
     marginBottom: 10,
-  },
-  dropdownRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
 });
 
