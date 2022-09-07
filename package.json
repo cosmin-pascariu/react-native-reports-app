@@ -13,6 +13,7 @@
     "clean:cache": "react-native start --reset-cache"
   },
   "dependencies": {
+    "@coffeebeanslabs/react-native-inviewport": "^0.2.0",
     "@react-native-async-storage/async-storage": "^1.17.9",
     "@react-native-community/geolocation": "^2.1.0",
     "@react-native-firebase/app": "^15.3.0",
@@ -44,7 +45,7 @@
     "react-native-select-dropdown": "^2.0.4",
     "react-native-uuid": "^2.0.1",
     "react-native-vector-icons": "^9.2.0",
-    "react-native-video": "^5.2.0",
+    "react-native-video": "6.0.0-alpha.1",
     "yup": "^0.32.11"
   },
   "devDependencies": {

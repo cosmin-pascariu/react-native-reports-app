@@ -34,7 +34,7 @@ import {
 } from '@react-navigation/native';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
-// import Video from 'react-native-video';
+import Video from 'react-native-video';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -47,6 +47,7 @@ export default function AddScreen({route, navigation}) {
     description: '',
     location: '',
     images: [],
+    video: '',
   };
   //FORMIK
   const {
@@ -66,7 +67,7 @@ export default function AddScreen({route, navigation}) {
   });
 
   /// Destructuring the params
-  const {title, description, images, location} = values;
+  const {title, description, images, location, video} = values;
 
   // is focused is used to check if the screen is focused or not
   const isFocused = useIsFocused();
@@ -215,6 +216,7 @@ export default function AddScreen({route, navigation}) {
     })
       .then(video => {
         setFieldValue('images', [...images, video]);
+        // setFieldValue('video', video);
         getAdminId();
       })
       .catch(err => {
@@ -227,6 +229,7 @@ export default function AddScreen({route, navigation}) {
     })
       .then(video => {
         setFieldValue('images', [...images, video.path]);
+        // setFieldValue('video', video);
         getAdminId();
       })
       .catch(err => {
@@ -450,11 +453,19 @@ export default function AddScreen({route, navigation}) {
                         setDeleteImageModalVisibility(true);
                         setSelectedImage(image);
                       }}>
-                      <Image
-                        key={index}
-                        source={{uri: image.path}}
-                        style={styles.loadedImage}
-                      />
+                      {image.path.includes('mp4') ? (
+                        <Video
+                          source={{uri: image.path}}
+                          style={styles.video}
+                          controls={true}
+                        />
+                      ) : (
+                        <Image
+                          key={index}
+                          source={{uri: image.path}}
+                          style={styles.loadedImage}
+                        />
+                      )}
                     </TouchableHighlight>
                   ))}
             </View>
@@ -760,6 +771,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     textDecoration: 'none',
     fontWeight: 'bold',
+  },
+  video: {
+    width: WIDTH / 2 - 20,
+    height: WIDTH / 2 - 20,
+    marginBottom: 10,
+    marginRight: 'auto',
+    marginLeft: 'auto',
+    backgroundColor: '#000',
+    borderRadius: 25,
   },
 });
 

@@ -24,6 +24,8 @@ import firestore from '@react-native-firebase/firestore';
 import DoubleClick from 'react-native-double-tap';
 import Pinchable from 'react-native-pinchable';
 import ImageZoom from 'react-native-image-pan-zoom';
+import Video from 'react-native-video';
+import InViewPort from '@coffeebeanslabs/react-native-inviewport';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -58,6 +60,7 @@ export default function Post({
   const [seeMore, setSeemore] = useState(false);
   const [imgActive, setImgActive] = useState(0);
   const [images, setImages] = useState([]);
+  const [videoPlay, setVideoPlay] = useState(false);
   const updatePostComments = async () => {
     const postRef = firestore().collection('posts').doc(postId);
     await postRef.update({
@@ -341,11 +344,32 @@ export default function Post({
             key={image}
             doubleTap={() => setModalImages(true)}
             delay={200}>
-            <Image
-              key={uuid.v4()}
-              source={{uri: image}}
-              style={[styles.postImage, {width: WIDTH}]}
-            />
+            {image.includes('mp4') ? (
+              <InViewPort
+                onChange={inView => {
+                  if (inView) {
+                    setVideoPlay(false);
+                  } else {
+                    setVideoPlay(true);
+                  }
+                }}>
+                <Video
+                  source={{uri: image}}
+                  style={[styles.postImage, {width: WIDTH}]}
+                  shouldPlay
+                  repeat
+                  paused={false}
+                  useNativeControls
+                  resizeMode="cover"
+                />
+              </InViewPort>
+            ) : (
+              <Image
+                key={uuid.v4()}
+                source={{uri: image}}
+                style={[styles.postImage, {width: WIDTH}]}
+              />
+            )}
           </DoubleClick>
         ))}
       </ScrollView>
@@ -466,11 +490,22 @@ export default function Post({
                   cropHeight={HEIGHT}
                   imageWidth={WIDTH - 10}
                   imageHeight={HEIGHT}>
-                  <Image
-                    key={uuid.v4()}
-                    source={{uri: image}}
-                    style={styles.postImage}
-                  />
+                  {image.includes('mp4') ? (
+                    <Video
+                      source={{uri: image}}
+                      style={styles.postImage}
+                      shouldPlay
+                      repeat
+                      paused={false}
+                      useNativeControls
+                    />
+                  ) : (
+                    <Image
+                      key={uuid.v4()}
+                      source={{uri: image}}
+                      style={styles.postImage}
+                    />
+                  )}
                 </ImageZoom>
               ))}
             </ScrollView>
@@ -512,7 +547,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#353535',
   },
   postImage: {
-    objectFit: 'cover',
+    resizeMode: 'cover',
     height: 400,
     width: WIDTH,
   },
