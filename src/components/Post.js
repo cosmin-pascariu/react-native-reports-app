@@ -299,6 +299,12 @@ export default function Post({
         Alert.alert(error.message);
       });
   };
+  const deleteMediaFromStorage = async () => {
+    for (let i = 0; i < postImages.length; i++) {
+      await storage().ref(postImages[i]).delete();
+    }
+  };
+
   const rejectPost = () => {
     firestore()
       .collection('posts')
@@ -358,7 +364,7 @@ export default function Post({
                   style={[styles.postImage, {width: WIDTH}]}
                   shouldPlay
                   repeat
-                  paused={false}
+                  paused={!videoPlay} // put pause false to go always
                   useNativeControls
                   resizeMode="cover"
                 />
@@ -372,13 +378,33 @@ export default function Post({
             )}
           </DoubleClick>
         ))}
+        {postImages.map(image => (
+          <Image
+            key={uuid.v4()}
+            source={{uri: 'https://wallpaperaccess.com/full/685208.jpg'}}
+            style={[styles.postImage, {width: WIDTH}]}
+          />
+        ))}
       </ScrollView>
       <View style={styles.upvotedContent}>
         {userId === auth().currentUser.uid &&
         postAdminId !== auth().currentUser.uid &&
         route.name === 'MyPosts' ? (
           <View style={styles.upvodedButtons}>
-            <Text style={styles.postStatus}>{postStatus}</Text>
+            <Text
+              style={[
+                styles.postStatus,
+                {
+                  color:
+                    postStatus === 'approved'
+                      ? 'green'
+                      : postStatus === 'rejected'
+                      ? 'red'
+                      : '#666',
+                },
+              ]}>
+              {postStatus}
+            </Text>
           </View>
         ) : postAdminId === auth().currentUser.uid &&
           route.name === 'MyPosts' ? (
@@ -491,14 +517,24 @@ export default function Post({
                   imageWidth={WIDTH - 10}
                   imageHeight={HEIGHT}>
                   {image.includes('mp4') ? (
-                    <Video
-                      source={{uri: image}}
-                      style={styles.postImage}
-                      shouldPlay
-                      repeat
-                      paused={false}
-                      useNativeControls
-                    />
+                    <InViewPort
+                      onChange={inView => {
+                        if (inView) {
+                          setVideoPlay(false);
+                        } else {
+                          setVideoPlay(true);
+                        }
+                      }}>
+                      <Video
+                        source={{uri: image}}
+                        style={styles.postImage}
+                        shouldPlay
+                        repeat
+                        poster
+                        paused={false}
+                        useNativeControls
+                      />
+                    </InViewPort>
                   ) : (
                     <Image
                       key={uuid.v4()}

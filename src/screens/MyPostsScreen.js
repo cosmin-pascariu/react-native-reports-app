@@ -35,7 +35,7 @@ export default function MyPostsScreen() {
               '==',
               auth().currentUser.uid,
             )
-            .where('status', '==', 'on review')
+            // .where('status', '==', 'on review' || 'approved')
             .onSnapshot(snapshot => {
               let docs = [];
               snapshot.forEach(doc => {
@@ -90,7 +90,7 @@ export default function MyPostsScreen() {
             good={post.good}
             bad={post.bad}
             comments={post.comments}
-            postStatus={'On review'}
+            postStatus={post.status}
             postAdminId={post.adminId}
           />
         ))}

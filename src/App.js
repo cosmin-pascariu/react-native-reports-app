@@ -10,6 +10,7 @@ import {
   Button,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import {
   SafeAreaProvider,
@@ -18,7 +19,8 @@ import {
 } from 'react-native-safe-area-context';
 import AppNavigatorScreen from './screens/AppNavigatorScreen';
 import RootStackScreen from './screens/RootStackScreen';
-import {createDrawerNavigator} from '@react-navigation/drawer';
+// import {createDrawerNavigator} from '@react-navigation/drawer';
+import {createStackNavigator} from '@react-navigation/stack';
 import {authContext} from './components/context';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,15 +29,14 @@ import auth, {getAuth, updateProfile} from '@react-native-firebase/auth';
 import MyProfileScreen from './screens/MyProfileScreen';
 import firestore from '@react-native-firebase/firestore';
 
-const RootDrawer = createDrawerNavigator();
+// const RootDrawer = createDrawerNavigator();
+const RootDrawer = createStackNavigator();
 
 function App() {
   const [initialising, setInitialising] = useState(true);
   const [user, setUser] = useState();
   const [userData, setUserData] = useState(null);
   const [onSetupProfile, setOnSetupProfile] = useState(false);
-  let userName = '';
-  let userLocation = '';
 
   // Handle user state changes
   function onAuthStateChanged(user) {
@@ -43,30 +44,24 @@ function App() {
     if (initialising) setInitialising(false);
   }
 
-  const getUserData = async () => {
-    await firestore()
-      .collection('users')
-      .where('uid', '==', auth().currentUser.uid)
-      .get()
-      .then(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          setUserData(doc.data());
-          userName = doc.data().name;
-          userLocation = doc.data().location;
-          console.log('User data: ', doc.data());
-        });
-      });
-  };
-
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    getUserData();
     return subscriber; // unsubscribe on unmount
   }, []);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait(2000).then(() => setRefreshing(false));
+  }, []);
+
+  // console.log(auth().currentUser.displayName);
   return (
     <AuthContext.Provider value={authContext}>
-      <SafeAreaProvider>
+      <SafeAreaProvider
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <NavigationContainer>
           {user ? (
             <RootDrawer.Navigator
@@ -76,7 +71,7 @@ function App() {
                 swipeEdgeWidth: 0,
                 drawerLockMode: 'locked-open',
               }}>
-              {userData?.name.length > 0 ? (
+              {user._user?.displayName?.length > 0 ? (
                 <RootDrawer.Screen
                   name="AppNavigatorScreen"
                   component={AppNavigatorScreen}

@@ -228,7 +228,7 @@ export default function AddScreen({route, navigation}) {
       mediaType: 'video',
     })
       .then(video => {
-        setFieldValue('images', [...images, video.path]);
+        setFieldValue('images', [...images, video]);
         // setFieldValue('video', video);
         getAdminId();
       })
@@ -417,7 +417,7 @@ export default function AddScreen({route, navigation}) {
           <TouchableWithoutFeedback onPress={takeVideoFromCamera}>
             <View style={styles.customImgButton}>
               <Image
-                source={require('../assets/camera.png')}
+                source={require('../assets/videoCamera.png')}
                 style={styles.customImgBackground}
               />
             </View>
@@ -425,7 +425,7 @@ export default function AddScreen({route, navigation}) {
           <TouchableWithoutFeedback onPress={takeVideoFromGallery}>
             <View style={styles.customImgButton}>
               <Image
-                source={require('../assets/gallery.png')}
+                source={require('../assets/videoGallery.png')}
                 style={styles.customImgBackground}
               />
             </View>
@@ -458,6 +458,7 @@ export default function AddScreen({route, navigation}) {
                           source={{uri: image.path}}
                           style={styles.video}
                           controls={true}
+                          resizeMode="cover"
                         />
                       ) : (
                         <Image
@@ -790,7 +791,7 @@ const validationSchema = Yup.object().shape({
   description: Yup.string()
     .min(150, 'At least 150 characters')
     .required('Description is required'),
-  images: Yup.array().min(1, 'Minimum one image'),
+  images: Yup.array().min(1, 'Minimum one image or video'),
   location: Yup.string().required('Location is required'),
 });
 

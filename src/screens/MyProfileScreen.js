@@ -13,6 +13,7 @@ import {
   Modal,
   Alert,
   PermissionsAndroid,
+  DevSettings,
 } from 'react-native';
 import React, {useState, useEffect, useRef} from 'react';
 import {useRoute} from '@react-navigation/native';
@@ -50,6 +51,10 @@ export default function MyProfileScreen() {
     userLocation: '',
   };
 
+  function refreshPage() {
+    window.location.reload(false);
+  }
+
   //FORMIK
   const {
     handleSubmit,
@@ -65,7 +70,8 @@ export default function MyProfileScreen() {
       updateUser();
       updateUserData();
       route?.name === 'SetupProfileScreen' &&
-        navigation.navigate('SetupProfileScreen', {name, location});
+        DevSettings.reload() &&
+        name !== '';
     },
     validationSchema: validationSchema,
   });
@@ -252,19 +258,13 @@ export default function MyProfileScreen() {
             snapshot.forEach(doc => {
               firestore().collection('posts').doc(doc.id).delete();
             });
-          })
-          .then(() => {
-            auth()
-              .currentUser.delete()
-              .then(() => {
-                console.log('User deleted!');
-              })
-              .catch(error => {
-                console.log(error);
-              });
           });
       });
-
+    await auth()
+      .currentUser.delete()
+      .then(() => {
+        console.log('User account deleted!');
+      });
     setInputVisibility(false);
   };
 
