@@ -10,6 +10,7 @@ import Filter from '../components/Filter';
 Keyboard.dismiss();
 
 export default function HomeScreen({filterState}) {
+  console.disableYellowBox = true;
   const [posts, setPosts] = useState([]); // array of posts
   const [allPosts, setAllPosts] = useState([]); // array of all posts
   const [userData, setUserData] = useState(null); // user data

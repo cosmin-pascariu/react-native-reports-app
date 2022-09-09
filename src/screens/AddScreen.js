@@ -27,6 +27,9 @@ import auth from '@react-native-firebase/auth';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
+import MediaButton from '../components/MediaButton';
+import PdfButton from '../components/PdfButton';
+import DocumentPicker from 'react-native-document-picker';
 import {
   useNavigation,
   useIsFocused,
@@ -35,6 +38,7 @@ import {
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 import Video from 'react-native-video';
+import InViewPort from '@coffeebeanslabs/react-native-inviewport';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -68,6 +72,7 @@ export default function AddScreen({route, navigation}) {
 
   /// Destructuring the params
   const {title, description, images, location, video} = values;
+  const [videoPlay, setVideoPlay] = useState(false);
 
   // is focused is used to check if the screen is focused or not
   const isFocused = useIsFocused();
@@ -216,7 +221,6 @@ export default function AddScreen({route, navigation}) {
     })
       .then(video => {
         setFieldValue('images', [...images, video]);
-        // setFieldValue('video', video);
         getAdminId();
       })
       .catch(err => {
@@ -229,14 +233,24 @@ export default function AddScreen({route, navigation}) {
     })
       .then(video => {
         setFieldValue('images', [...images, video]);
-        // setFieldValue('video', video);
         getAdminId();
       })
       .catch(err => {
         console.log(err);
       });
   };
-
+  const [pdf, setPdf] = useState(null);
+  const takePdfFromGallery = () => {
+    DocumentPicker.pick({
+      type: [DocumentPicker.types.pdf],
+    })
+      .then(res => {
+        console.log(res[0].name);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
   const submitPost = async () => {
     let imagesPath = [];
     const promises = images.map(async image => {
@@ -332,7 +346,6 @@ export default function AddScreen({route, navigation}) {
       }),
     );
   };
-  // get admin Id
   const getAdminId = async () => {
     let userId;
     const user = await firestore()
@@ -396,41 +409,28 @@ export default function AddScreen({route, navigation}) {
           )}
         </View>
         <View style={styles.mediaButtons}>
-          <TouchableWithoutFeedback onPress={takePhotoFromCamera}>
-            <View style={styles.customImgButton}>
-              <Image
-                source={require('../assets/camera.png')}
-                style={styles.customImgBackground}
-              />
-            </View>
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPress={takeMultiplePhotos}>
-            <View style={styles.customImgButton}>
-              <Image
-                source={require('../assets/gallery.png')}
-                style={styles.customImgBackground}
-              />
-            </View>
-          </TouchableWithoutFeedback>
+          <MediaButton
+            onpress={takePhotoFromCamera}
+            imageSource={require('../assets/camera.png')}
+          />
+          <MediaButton
+            onpress={takeMultiplePhotos}
+            imageSource={require('../assets/gallery.png')}
+          />
         </View>
         <View style={styles.mediaButtons}>
-          <TouchableWithoutFeedback onPress={takeVideoFromCamera}>
-            <View style={styles.customImgButton}>
-              <Image
-                source={require('../assets/videoCamera.png')}
-                style={styles.customImgBackground}
-              />
-            </View>
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback onPress={takeVideoFromGallery}>
-            <View style={styles.customImgButton}>
-              <Image
-                source={require('../assets/videoGallery.png')}
-                style={styles.customImgBackground}
-              />
-            </View>
-          </TouchableWithoutFeedback>
+          <MediaButton
+            onpress={takeVideoFromCamera}
+            imageSource={require('../assets/videoCamera.png')}
+          />
+          <MediaButton
+            onpress={takeVideoFromGallery}
+            imageSource={require('../assets/videoGallery.png')}
+          />
         </View>
+        {/* Upload PDF from gallery */}
+        <PdfButton onpress={takePdfFromGallery} text={'Upload PDF File'} />
+        {pdf && <Text style={styles.label}>{pdf.uri}</Text>}
         {images.length > 0 && (
           <>
             <Text style={{color: '#323232'}}>
@@ -454,12 +454,23 @@ export default function AddScreen({route, navigation}) {
                         setSelectedImage(image);
                       }}>
                       {image.path.includes('mp4') ? (
-                        <Video
-                          source={{uri: image.path}}
-                          style={styles.video}
-                          controls={true}
-                          resizeMode="cover"
-                        />
+                        <InViewPort
+                          onChange={inView => {
+                            if (inView) {
+                              setVideoPlay(false);
+                            } else {
+                              setVideoPlay(true);
+                            }
+                          }}>
+                          <Video
+                            source={{uri: image.path}}
+                            style={styles.video}
+                            shouldPlay
+                            repeat
+                            paused={false} // put pause false to go always
+                            resizeMode="cover"
+                          />
+                        </InViewPort>
                       ) : (
                         <Image
                           key={index}
@@ -512,13 +523,13 @@ export default function AddScreen({route, navigation}) {
             />
           ))}
         </MapView>
-        <TouchableOpacity onPress={handleSubmit}>
+        <TouchableWithoutFeedback onPress={handleSubmit}>
           <View style={styles.submitButton}>
             <Text style={styles.submitButtonText}>
               {route?.params?.edit ? `Edit` : `Submit`}
             </Text>
           </View>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
         {route?.params?.edit && !isFocused && (
           <Modal visible={modalVisibility} transparent={true}>
             <View style={styles.modalContainer}>
@@ -623,7 +634,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     paddingHorizontal: 1,
   },
   loadedImages: {
@@ -657,28 +668,6 @@ const styles = StyleSheet.create({
     width: WIDTH - 30,
     height: HEIGHT / 2 - 20,
     backgroundColor: '#000',
-  },
-  customImgButton: {
-    width: WIDTH / 2 - 20,
-    height: WIDTH / 2 - 20,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  customImgBackground: {
-    width: '75%',
-    height: '75%',
-    resizeMode: 'cover',
-    borderRadius: 25,
   },
   submitButton: {
     width: WIDTH - 30,

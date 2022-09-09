@@ -245,17 +245,16 @@ export default function Post({
         });
     }
   };
-
+  const getImageFromStorage = async () => {
+    const imagesFromStorage = [];
+    for (let i = 0; i < postImages.length; i++) {
+      const image = await storage().ref(postImages[i]).getDownloadURL();
+      imagesFromStorage.push(image);
+    }
+    setImages(imagesFromStorage);
+  };
   //get images from firebase storage
   useEffect(() => {
-    const getImageFromStorage = async () => {
-      const imagesFromStorage = [];
-      for (let i = 0; i < postImages.length; i++) {
-        const image = await storage().ref(postImages[i]).getDownloadURL();
-        imagesFromStorage.push(image);
-      }
-      setImages(imagesFromStorage);
-    };
     getImageFromStorage();
   }, []);
 
@@ -304,7 +303,6 @@ export default function Post({
       await storage().ref(postImages[i]).delete();
     }
   };
-
   const rejectPost = () => {
     firestore()
       .collection('posts')
@@ -378,13 +376,6 @@ export default function Post({
             )}
           </DoubleClick>
         ))}
-        {postImages.map(image => (
-          <Image
-            key={uuid.v4()}
-            source={{uri: 'https://wallpaperaccess.com/full/685208.jpg'}}
-            style={[styles.postImage, {width: WIDTH}]}
-          />
-        ))}
       </ScrollView>
       <View style={styles.upvotedContent}>
         {userId === auth().currentUser.uid &&
@@ -403,7 +394,7 @@ export default function Post({
                       : '#666',
                 },
               ]}>
-              {postStatus}
+              {postStatus.charAt(0).toUpperCase() + postStatus.slice(1)}
             </Text>
           </View>
         ) : postAdminId === auth().currentUser.uid &&

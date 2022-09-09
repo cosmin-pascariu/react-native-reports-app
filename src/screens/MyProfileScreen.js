@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 20,
     marginVertical: 'auto',
-    // height: HEIGHT - 150,
+    marginBottom: 20,
   },
   imageContainer: {
     width: WIDTH - 40,

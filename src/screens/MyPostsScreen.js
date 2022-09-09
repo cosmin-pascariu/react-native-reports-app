@@ -22,29 +22,34 @@ export default function MyPostsScreen() {
   const [myPostId, setMyPostId] = useState(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
+  // get post according to admin approval
+  const getMyPosts = () => {
     firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         snapshot.forEach(doc => {
-          firestore()
-            .collection('posts')
-            .where(
-              doc.data().admin ? 'adminId' : 'userId',
-              '==',
-              auth().currentUser.uid,
-            )
-            // .where('status', '==', 'on review' || 'approved')
-            .onSnapshot(snapshot => {
-              let docs = [];
-              snapshot.forEach(doc => {
-                docs.push({...doc.data(), id: doc.id});
-              });
-              setPosts(docs);
-            });
+          doc.data().admin
+            ? getPosts(doc.data().admin)
+            : getPosts(doc.data().admin);
         });
       });
+  };
+  const getPosts = admin => {
+    firestore()
+      .collection('posts')
+      .where('status', admin ? '==' : '!=', admin ? 'on review' : '')
+      .onSnapshot(snapshot => {
+        let docs = [];
+        snapshot.forEach(doc => {
+          docs.push({...doc.data(), id: doc.id});
+        });
+        setPosts(docs);
+      });
+  };
+
+  useEffect(() => {
+    getMyPosts();
   }, []);
 
   const deletePostHandler = () => {

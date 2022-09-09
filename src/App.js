@@ -28,6 +28,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth, {getAuth, updateProfile} from '@react-native-firebase/auth';
 import MyProfileScreen from './screens/MyProfileScreen';
 import firestore from '@react-native-firebase/firestore';
+import {LogBox} from 'react-native';
+
+// Ignore log notification by message:
+LogBox.ignoreLogs(['Warning: ...']);
+
+// Ignore all log notifications:
+LogBox.ignoreAllLogs();
 
 // const RootDrawer = createDrawerNavigator();
 const RootDrawer = createStackNavigator();
