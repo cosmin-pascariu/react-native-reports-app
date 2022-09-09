@@ -53,6 +53,7 @@ export default function MyPostsScreen() {
   }, []);
 
   const deletePostHandler = () => {
+    deleteMediaFromStorage();
     firestore()
       .collection('posts')
       .doc(myPostId)
@@ -67,6 +68,21 @@ export default function MyPostsScreen() {
       .finally(() => {
         setMyPostId(null);
         setModalVisible(false);
+      });
+  };
+
+  const deleteMediaFromStorage = () => {
+    firestore()
+      .collection('posts')
+      .doc(myPostId)
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          postImages = doc.data().images;
+          for (let i = 0; i < postImages.length; i++) {
+            storage().ref(postImages[i]).delete();
+          }
+        }
       });
   };
 

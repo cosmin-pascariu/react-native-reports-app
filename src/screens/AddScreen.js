@@ -39,6 +39,7 @@ import {useFormik} from 'formik';
 import * as Yup from 'yup';
 import Video from 'react-native-video';
 import InViewPort from '@coffeebeanslabs/react-native-inviewport';
+import Pdf from 'react-native-pdf';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -207,8 +208,8 @@ export default function AddScreen({route, navigation}) {
       width: WIDTH,
       height: HEIGHT / 2 - 20,
     })
-      .then(images => {
-        setFieldValue('images', images);
+      .then(imagesGallery => {
+        setFieldValue('images', [...images, ...imagesGallery]);
         getAdminId();
       })
       .catch(err => {
@@ -239,13 +240,18 @@ export default function AddScreen({route, navigation}) {
         console.log(err);
       });
   };
-  const [pdf, setPdf] = useState(null);
+  const [pdf, setPdf] = useState();
   const takePdfFromGallery = () => {
     DocumentPicker.pick({
       type: [DocumentPicker.types.pdf],
     })
       .then(res => {
-        console.log(res[0].name);
+        for (let i = 0; i < res.length; i++) {
+          setFieldValue('images', [...images, res[i]]);
+        }
+        setPdf(res);
+
+        getAdminId();
       })
       .catch(err => {
         console.log(err);
@@ -254,7 +260,7 @@ export default function AddScreen({route, navigation}) {
   const submitPost = async () => {
     let imagesPath = [];
     const promises = images.map(async image => {
-      const uploadUri = Platform.OS === 'ios' ? image.uri : image.path;
+      const uploadUri = image?.uri ? image.uri : image.path;
       let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
 
       // Add timestamp to filename to avoid name collisions
@@ -269,6 +275,7 @@ export default function AddScreen({route, navigation}) {
         console.log(error);
       }
     });
+    // console.log(imagesPath);
     await Promise.all(promises);
     const post = {
       userId: auth().currentUser.uid,
@@ -332,8 +339,6 @@ export default function AddScreen({route, navigation}) {
         longitude: region.longitude,
       },
     };
-    console.log('Formated images: ', formatImages(images));
-    console.log('UPDATED POST', updatedPost);
     await firestore()
       .collection('posts')
       .doc(route?.params?.postId)
@@ -365,6 +370,37 @@ export default function AddScreen({route, navigation}) {
       autocompleteFields();
     }
   }, [route?.params?.edit, isFocused]);
+
+  const testPdf = async () => {
+    await storage()
+      .ref('test.pdf')
+      .putFile(pdf[0].uri)
+      .then(() => {
+        Alert.alert('success');
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    console.log(pdf[0].uri);
+  };
+
+  const uploadPdfToFirebaseStorage = async () => {
+    const promises = pdf.map(async pdf => {
+      const uploadUri = pdf?.uri ? pdf.uri : pdf.path;
+      let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+
+      // Add timestamp to filename to avoid name collisions
+      const extension = filename.split('.').pop();
+      const name = filename.split('.').slice(0, -1).join('.');
+      filename = name + Date.now() + '.' + extension;
+      try {
+        await storage().ref(filename).putFile(uploadUri);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    await Promise.all(promises);
+  };
 
   return (
     <SafeAreaView>
@@ -398,10 +434,10 @@ export default function AddScreen({route, navigation}) {
         <View style={styles.rowLabel}>
           <Text
             style={styles.label}
-            onPress={() => {
-              // getImageFromStorage(images);
-              console.log(images);
-            }}>
+            onPress={() =>
+              // uploadPdfToFirebaseStorage()
+              console.log(images)
+            }>
             Media
           </Text>
           {touched.images && errors.images && (
@@ -430,7 +466,6 @@ export default function AddScreen({route, navigation}) {
         </View>
         {/* Upload PDF from gallery */}
         <PdfButton onpress={takePdfFromGallery} text={'Upload PDF File'} />
-        {pdf && <Text style={styles.label}>{pdf.uri}</Text>}
         {images.length > 0 && (
           <>
             <Text style={{color: '#323232'}}>
@@ -453,7 +488,7 @@ export default function AddScreen({route, navigation}) {
                         setDeleteImageModalVisibility(true);
                         setSelectedImage(image);
                       }}>
-                      {image.path.includes('mp4') ? (
+                      {image?.path?.includes('mp4') ? (
                         <InViewPort
                           onChange={inView => {
                             if (inView) {
@@ -471,6 +506,17 @@ export default function AddScreen({route, navigation}) {
                             resizeMode="cover"
                           />
                         </InViewPort>
+                      ) : image?.uri ? (
+                        <Pdf
+                          source={{uri: image.uri}}
+                          horizontal={true}
+                          fitWitdh={true}
+                          onError={error => {
+                            console.log(error);
+                          }}
+                          enablePaging={true}
+                          style={styles.pdf}
+                        />
                       ) : (
                         <Image
                           key={index}
@@ -604,7 +650,7 @@ export default function AddScreen({route, navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    margin: 15,
+    padding: 15,
   },
   label: {
     fontSize: 14,
@@ -674,6 +720,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 12,
     marginVertical: 10,
+    marginBottom: 20,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0356e8',
@@ -769,6 +816,11 @@ const styles = StyleSheet.create({
     marginRight: 'auto',
     marginLeft: 'auto',
     backgroundColor: '#000',
+    borderRadius: 25,
+  },
+  pdf: {
+    width: WIDTH / 2 - 20,
+    height: WIDTH / 2 - 20,
     borderRadius: 25,
   },
 });

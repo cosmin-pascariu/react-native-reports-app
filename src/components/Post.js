@@ -26,6 +26,7 @@ import Pinchable from 'react-native-pinchable';
 import ImageZoom from 'react-native-image-pan-zoom';
 import Video from 'react-native-video';
 import InViewPort from '@coffeebeanslabs/react-native-inviewport';
+import Pdf from 'react-native-pdf';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -283,7 +284,6 @@ export default function Post({
     }
     return Math.floor(postedTimeInMinutes / 518400) + ' years ago';
   };
-
   const approvePost = () => {
     firestore()
       .collection('posts')
@@ -297,11 +297,6 @@ export default function Post({
       .catch(error => {
         Alert.alert(error.message);
       });
-  };
-  const deleteMediaFromStorage = async () => {
-    for (let i = 0; i < postImages.length; i++) {
-      await storage().ref(postImages[i]).delete();
-    }
   };
   const rejectPost = () => {
     firestore()
@@ -367,6 +362,11 @@ export default function Post({
                   resizeMode="cover"
                 />
               </InViewPort>
+            ) : image?.uri ? (
+              <Pdf
+                source={{uri: image.uri}}
+                style={[styles.postImage, {width: WIDTH}]}
+              />
             ) : (
               <Image
                 key={uuid.v4()}
@@ -378,64 +378,66 @@ export default function Post({
         ))}
       </ScrollView>
       <View style={styles.upvotedContent}>
-        {userId === auth().currentUser.uid &&
-        postAdminId !== auth().currentUser.uid &&
-        route.name === 'MyPosts' ? (
-          <View style={styles.upvodedButtons}>
-            <Text
-              style={[
-                styles.postStatus,
-                {
-                  color:
-                    postStatus === 'approved'
-                      ? 'green'
-                      : postStatus === 'rejected'
-                      ? 'red'
-                      : '#666',
-                },
-              ]}>
-              {postStatus.charAt(0).toUpperCase() + postStatus.slice(1)}
-            </Text>
-          </View>
-        ) : postAdminId === auth().currentUser.uid &&
+        {
+          // userId === auth().currentUser.uid &&
+          // postAdminId !== auth().currentUser.uid &&
           route.name === 'MyPosts' ? (
-          <View style={styles.bottomRow}>
-            <TouchableWithoutFeedback onPress={() => rejectPost()}>
-              <View style={styles.postbutton}>
-                <Text style={styles.postbuttonText}>Reject</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback onPress={() => approvePost()}>
-              <View style={[styles.postbutton, {backgroundColor: '#0356e8'}]}>
-                <Text style={styles.postbuttonText}>Approve </Text>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        ) : (
-          <View style={styles.upvotedButtons}>
-            <Ionicons
-              name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
-              style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
-              onPress={() => {
-                onPressImportant();
-              }}
-            />
-            <Ionicons
-              name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
-              style={{color: isGood ? 'green' : '#888', fontSize: 25}}
-              onPress={() => {
-                onPressGood();
-              }}
-            />
-            <Ionicons
-              name={isBad ? 'close-circle' : 'close-circle-outline'}
-              style={{color: isBad ? 'red' : '#888', fontSize: 25}}
-              onPress={() => {
-                onPressBad();
-              }}
-            />
-          </View>
-        )}
+            <View style={styles.upvodedButtons}>
+              <Text
+                style={[
+                  styles.postStatus,
+                  {
+                    color:
+                      postStatus === 'approved'
+                        ? 'green'
+                        : postStatus === 'rejected'
+                        ? 'red'
+                        : '#666',
+                  },
+                ]}>
+                {postStatus.charAt(0).toUpperCase() + postStatus.slice(1)}
+              </Text>
+            </View>
+          ) : postAdminId === auth().currentUser.uid &&
+            route.name !== 'MyPosts' ? (
+            <View style={styles.bottomRow}>
+              <TouchableWithoutFeedback onPress={() => rejectPost()}>
+                <View style={styles.postbutton}>
+                  <Text style={styles.postbuttonText}>Reject</Text>
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback onPress={() => approvePost()}>
+                <View style={[styles.postbutton, {backgroundColor: '#0356e8'}]}>
+                  <Text style={styles.postbuttonText}>Approve </Text>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          ) : (
+            <View style={styles.upvotedButtons}>
+              <Ionicons
+                name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
+                style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
+                onPress={() => {
+                  onPressImportant();
+                }}
+              />
+              <Ionicons
+                name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                style={{color: isGood ? 'green' : '#888', fontSize: 25}}
+                onPress={() => {
+                  onPressGood();
+                }}
+              />
+              <Ionicons
+                name={isBad ? 'close-circle' : 'close-circle-outline'}
+                style={{color: isBad ? 'red' : '#888', fontSize: 25}}
+                onPress={() => {
+                  onPressBad();
+                }}
+              />
+            </View>
+          )
+        }
 
         <Ionicons
           name={savedPost ? 'bookmark' : 'bookmark-outline'}
