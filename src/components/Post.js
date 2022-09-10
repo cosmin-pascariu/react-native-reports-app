@@ -113,12 +113,12 @@ export default function Post({
       }
     }
   };
-  const onPressImportant = () => {
+  const onPressImportant = async () => {
     good.splice(good.indexOf(auth().currentUser.uid), 1);
     bad.splice(bad.indexOf(auth().currentUser.uid), 1);
     if (important.includes(auth().currentUser.uid)) {
       important.splice(important.indexOf(auth().currentUser.uid), 1);
-      firestore()
+      await firestore()
         .collection('posts')
         .doc(postId)
         .update({
@@ -131,7 +131,7 @@ export default function Post({
           console.log(error);
         });
     } else {
-      firestore()
+      await firestore()
         .collection('posts')
         .doc(postId)
         .update({
@@ -254,6 +254,7 @@ export default function Post({
     }
     setImages(imagesFromStorage);
   };
+
   //get images from firebase storage
   useEffect(() => {
     getImageFromStorage();
@@ -380,8 +381,7 @@ export default function Post({
       <View style={styles.upvotedContent}>
         {
           // userId === auth().currentUser.uid &&
-          // postAdminId !== auth().currentUser.uid &&
-          route.name === 'MyPosts' ? (
+          postAdminId !== auth().currentUser.uid && route.name === 'MyPosts' ? (
             <View style={styles.upvodedButtons}>
               <Text
                 style={[
@@ -399,7 +399,7 @@ export default function Post({
               </Text>
             </View>
           ) : postAdminId === auth().currentUser.uid &&
-            route.name !== 'MyPosts' ? (
+            route.name == 'MyPosts' ? (
             <View style={styles.bottomRow}>
               <TouchableWithoutFeedback onPress={() => rejectPost()}>
                 <View style={styles.postbutton}>
@@ -442,7 +442,12 @@ export default function Post({
         <Ionicons
           name={savedPost ? 'bookmark' : 'bookmark-outline'}
           style={{color: savedPost ? 'black' : '#888', fontSize: 25}}
-          onPress={() => onBookmarkPress()}
+          onPress={() => {
+            route.name === 'MyPosts' &&
+              postStatus === 'approved' &&
+              onBookmarkPress();
+            route.name !== 'MyPosts' && onBookmarkPress();
+          }}
         />
       </View>
       <View style={styles.hairlineWidth} />

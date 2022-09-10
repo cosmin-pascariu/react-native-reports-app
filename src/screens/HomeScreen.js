@@ -19,8 +19,8 @@ export default function HomeScreen({filterState}) {
   const [filterRadioButtonValue, setFilterRadioButtonValue] = useState(''); // value for filtering
   const [sortOrder, setSortOrder] = useState(''); // value for sorting order
 
-  const getPostData = () => {
-    firestore()
+  const getPostData = async () => {
+    await firestore()
       .collection('posts')
       .where('status', '==', 'approved')
       .onSnapshot(snapshot => {
@@ -33,8 +33,8 @@ export default function HomeScreen({filterState}) {
       });
   };
 
-  const getUserData = () => {
-    firestore()
+  const getUserData = async () => {
+    await firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
       .get()

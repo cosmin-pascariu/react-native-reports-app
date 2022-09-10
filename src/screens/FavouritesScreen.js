@@ -16,8 +16,8 @@ import uuid from 'react-native-uuid';
 export default function FavouritesScreen() {
   const [posts, setPosts] = useState([]);
 
-  useEffect(() => {
-    firestore()
+  const getPosts = async () => {
+    await firestore()
       .collection('posts')
       .where('usersList', 'array-contains', auth().currentUser.uid)
       .onSnapshot(snapshot => {
@@ -27,6 +27,10 @@ export default function FavouritesScreen() {
         });
         setPosts(docs);
       });
+  };
+
+  useEffect(() => {
+    getPosts();
   }, []);
 
   return (
