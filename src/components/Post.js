@@ -379,65 +379,65 @@ export default function Post({
         ))}
       </ScrollView>
       <View style={styles.upvotedContent}>
-        {
-          // userId === auth().currentUser.uid &&
-          postAdminId !== auth().currentUser.uid && route.name === 'MyPosts' ? (
-            <View style={styles.upvodedButtons}>
-              <Text
-                style={[
-                  styles.postStatus,
-                  {
-                    color:
-                      postStatus === 'approved'
-                        ? 'green'
-                        : postStatus === 'rejected'
-                        ? 'red'
-                        : '#666',
-                  },
-                ]}>
-                {postStatus.charAt(0).toUpperCase() + postStatus.slice(1)}
-              </Text>
-            </View>
-          ) : postAdminId === auth().currentUser.uid &&
-            route.name == 'MyPosts' ? (
-            <View style={styles.bottomRow}>
-              <TouchableWithoutFeedback onPress={() => rejectPost()}>
-                <View style={styles.postbutton}>
-                  <Text style={styles.postbuttonText}>Reject</Text>
-                </View>
-              </TouchableWithoutFeedback>
-              <TouchableWithoutFeedback onPress={() => approvePost()}>
-                <View style={[styles.postbutton, {backgroundColor: '#0356e8'}]}>
-                  <Text style={styles.postbuttonText}>Approve </Text>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          ) : (
-            <View style={styles.upvotedButtons}>
-              <Ionicons
-                name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
-                style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
-                onPress={() => {
-                  onPressImportant();
-                }}
-              />
-              <Ionicons
-                name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
-                style={{color: isGood ? 'green' : '#888', fontSize: 25}}
-                onPress={() => {
-                  onPressGood();
-                }}
-              />
-              <Ionicons
-                name={isBad ? 'close-circle' : 'close-circle-outline'}
-                style={{color: isBad ? 'red' : '#888', fontSize: 25}}
-                onPress={() => {
-                  onPressBad();
-                }}
-              />
-            </View>
-          )
-        }
+        {userId === auth().currentUser.uid &&
+        postAdminId !== auth().currentUser.uid &&
+        route.name === 'MyPosts' ? (
+          <View style={styles.upvodedButtons}>
+            <Text
+              style={[
+                styles.postStatus,
+                {
+                  color:
+                    postStatus === 'approved'
+                      ? 'green'
+                      : postStatus === 'rejected'
+                      ? 'red'
+                      : '#666',
+                },
+              ]}>
+              {postStatus.charAt(0).toUpperCase() + postStatus.slice(1)}
+            </Text>
+          </View>
+        ) : userId !== auth().currentUser.uid &&
+          postAdminId === auth().currentUser.uid &&
+          route.name == 'MyPosts' ? (
+          <View style={styles.bottomRow}>
+            <TouchableWithoutFeedback onPress={() => rejectPost()}>
+              <View style={styles.postbutton}>
+                <Text style={styles.postbuttonText}>Reject</Text>
+              </View>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={() => approvePost()}>
+              <View style={[styles.postbutton, {backgroundColor: '#0356e8'}]}>
+                <Text style={styles.postbuttonText}>Approve </Text>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        ) : (
+          <View style={styles.upvotedButtons}>
+            <Ionicons
+              name={isImportant ? 'alert-circle' : 'alert-circle-outline'}
+              style={{color: isImportant ? 'orange' : '#888', fontSize: 25}}
+              onPress={() => {
+                onPressImportant();
+              }}
+            />
+            <Ionicons
+              name={isGood ? 'checkmark-circle' : 'checkmark-circle-outline'}
+              style={{color: isGood ? 'green' : '#888', fontSize: 25}}
+              onPress={() => {
+                onPressGood();
+              }}
+            />
+            <Ionicons
+              name={isBad ? 'close-circle' : 'close-circle-outline'}
+              style={{color: isBad ? 'red' : '#888', fontSize: 25}}
+              onPress={() => {
+                onPressBad();
+              }}
+            />
+          </View>
+        )}
 
         <Ionicons
           name={savedPost ? 'bookmark' : 'bookmark-outline'}
