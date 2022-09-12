@@ -29,20 +29,31 @@ export default function MyPostsScreen() {
       .where('uid', '==', auth().currentUser.uid)
       .onSnapshot(snapshot => {
         snapshot.forEach(doc => {
-          doc.data().admin
-            ? getPosts(doc.data().admin)
-            : getPosts(doc.data().admin);
+          doc.data().admin ? getAdminPosts() : getPostsByUserId(doc.data().uid);
         });
       });
   };
-  const getPosts = admin => {
+  const getAdminPosts = () => {
     firestore()
       .collection('posts')
-      .where('status', admin ? '==' : '!=', admin ? 'on review' : '')
+      .where('status', '==', 'on review')
       .onSnapshot(snapshot => {
         let docs = [];
         snapshot.forEach(doc => {
           docs.push({...doc.data(), id: doc.id});
+        });
+        setPosts(docs);
+      });
+  };
+  const getPostsByUserId = userId => {
+    firestore()
+      .collection('posts')
+      .onSnapshot(snapshot => {
+        let docs = [];
+        snapshot.forEach(doc => {
+          if (doc.data().userId === userId) {
+            docs.push({...doc.data(), id: doc.id});
+          }
         });
         setPosts(docs);
       });
@@ -70,7 +81,6 @@ export default function MyPostsScreen() {
         setModalVisible(false);
       });
   };
-
   const deleteMediaFromStorage = () => {
     firestore()
       .collection('posts')
