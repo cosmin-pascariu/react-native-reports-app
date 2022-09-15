@@ -19,35 +19,65 @@ export default function HomeScreen({filterState}) {
   const [filterRadioButtonValue, setFilterRadioButtonValue] = useState(''); // value for filtering
   const [sortOrder, setSortOrder] = useState(''); // value for sorting order
 
-  const getPostData = async () => {
-    await firestore()
-      .collection('posts')
-      .where('status', '==', 'approved')
-      .onSnapshot(snapshot => {
-        let docs = [];
-        snapshot.forEach(doc => {
-          docs.push({...doc.data(), id: doc.id});
-        });
-        setPosts(docs);
-        setAllPosts(docs);
-      });
-  };
+  // const getPostData = async () => {
+  //   await firestore()
+  //     .collection('posts')
+  //     .where('status', '==', 'approved')
+  //     .onSnapshot(snapshot => {
+  //       let docs = [];
+  //       snapshot.forEach(doc => {
+  //         docs.push({...doc.data(), id: doc.id});
+  //       });
+  //       setPosts(docs);
+  //       setAllPosts(docs);
+  //     });
+  // };
 
-  const getUserData = async () => {
+  // const getUserData = async () => {
+  //   await firestore()
+  //     .collection('users')
+  //     .where('uid', '==', auth().currentUser.uid)
+  //     .get()
+  //     .then(querySnapshot => {
+  //       querySnapshot.forEach(doc => {
+  //         setUserData(doc.data());
+  //       });
+  //     });
+  // };
+
+  const getPosts = async () => {
     await firestore()
       .collection('users')
       .where('uid', '==', auth().currentUser.uid)
       .get()
       .then(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          setUserData(doc.data());
+        querySnapshot.forEach(user => {
+          setUserData(user.data());
+          firestore()
+            .collection('posts')
+            .where('status', '==', 'approved')
+            .onSnapshot(snapshot => {
+              let docs = [];
+              snapshot.forEach(post => {
+                if (user.data().admin === false) {
+                  if (post.data().location.includes(user.data().location)) {
+                    docs.push({...post.data(), id: post.id});
+                  }
+                } else {
+                  docs.push({...post.data(), id: post.id});
+                }
+              });
+              setPosts(docs);
+              setAllPosts(docs);
+            });
         });
       });
   };
 
   useEffect(() => {
-    getPostData();
-    getUserData();
+    // getPostData();
+    // getUserData();
+    getPosts();
   }, []);
 
   const sortSwitch = value => {
@@ -152,79 +182,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
-// const sortDescByTitle = () => {
-//   let sorted = posts.sort((a, b) => {
-//     console.log('a,b:', a.title, b.title);
-//     return a.title > b.title ? 1 : -1;
-//   });
-//   return sorted;
-// };
-
-// const sortAscByTitle = () => {
-//   let sorted = posts.sort((a, b) => {
-//     console.log('a,b:', a.title, b.title);
-//     return a.title < b.title ? 1 : -1;
-//   });
-//   return sorted;
-// };
-
-// const sortDescByTime = () => {
-//   let sorted = posts.sort((a, b) => {
-//     console.log('a,b:', a.createdAd, b.createdAt);
-//     return a.createdAt > b.createdAt ? 1 : -1;
-//   });
-//   return sorted;
-// };
-
-// const sortAscByTime = () => {
-//   let sorted = posts.sort((a, b) => {
-//     console.log('a,b:', a.createdAd, b.createdAt);
-//     return a.createdAt < b.createdAt ? 1 : -1;
-//   });
-//   return sorted;
-// };
-
-// const sortSwitch = value => {
-//   let sorted = [];
-//   switch (value) {
-//     case 'title':
-//       sorted = posts
-//         .sort((a, b) => {
-//           console.log('a,b:', a.title, b.title);
-//           return a.title > b.title ? 1 : -1;
-//         })
-//         .reverse();
-//       setPosts(sorted);
-//       break;
-//     case 'location':
-//       sorted = posts
-//         .sort((a, b) => {
-//           console.log('a,b:', a.location, b.location);
-//           return a.location > b.location ? 1 : -1;
-//         })
-//         .reverse();
-//       setPosts(sorted);
-//       break;
-//     case 'createdAt':
-//       sorted = posts
-//         .sort((a, b) => {
-//           console.log('a,b:', a.createdAt, b.createdAt);
-//           return a.createdAt < b.createdAt ? 1 : -1;
-//         })
-//         .reverse();
-//       setPosts(sorted);
-//       break;
-//     case 'comments':
-//       sorted = posts
-//         .sort((a, b) => {
-//           console.log('a,b:', a.comments, b.comments);
-//           return a.comments > b.comments ? 1 : -1;
-//         })
-//         .reverse();
-//       setPosts(sorted);
-//       break;
-//     default:
-//       break;
-//   }
-// };
